@@ -2,9 +2,9 @@
 
 cd ..
 
-virtualenv py27
+virtualenv zpost-py27
 
-source py27/bin/activate
+source zpost-py27/bin/activate
 
 pip install yolk
 

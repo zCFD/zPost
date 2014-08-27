@@ -52,7 +52,10 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-py27/
+zpost-py27/
 
 ipynb/NACA0012/.ipynb_checkpoints/
 ipynb/NACA0012/images/
+
+ipynb/CUBE/.ipynb_checkpoints/
+
