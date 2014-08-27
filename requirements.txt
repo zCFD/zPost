@@ -1,0 +1,7 @@
+ipython
+matplotlib
+tornado
+pyzmq
+jinja2
+numpy
+

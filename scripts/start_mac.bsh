@@ -1,12 +1,11 @@
 #!/bin/bash 
 
-source ~/Documents/py27/bin/activate
+source ../py27/bin/activate
 
-ZCFD_HOME=~/Documents/zCFD_build
-PARAVIEW_HOME=/Applications/paraview.app
+PARAVIEW_HOME="/Applications/paraview.app"
 
 export DYLD_LIBRARY_PATH=$PARAVIEW_HOME/Contents/Libraries
-export PYTHONPATH=/$PARAVIEW_HOME/Contents/Python:$PARAVIEW_HOME/Contents/Libraries:$ZCFD_HOME/bin/Release
+export PYTHONPATH=/$PARAVIEW_HOME/Contents/Python:$PARAVIEW_HOME/Contents/Libraries:../python
 
 cd ../ipynb
 ipython notebook
