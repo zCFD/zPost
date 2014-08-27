@@ -1,0 +1,11 @@
+#!/bin/bash
+
+cd ..
+
+virtualenv py27
+
+source py27/bin/activate
+
+pip install yolk
+
+pip install -r requirements.txt 

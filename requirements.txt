@@ -1,7 +1,10 @@
 ipython
+# On Macs may need to comment out /usr/X11/include/freetype2 before compiling matplotlib
 matplotlib
 tornado
 pyzmq
 jinja2
 numpy
-
+mpld3
+fabric
+pandas
