@@ -11,7 +11,7 @@ In the scripts folder run
 
 > create_virtualenv.bsh
 
-This will install all the required python packages in zPost/py27
+This will install all the required python packages in zPost/zpost-py27
 
 To run the ipython notebook server
 

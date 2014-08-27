@@ -1,0 +1,20 @@
+{
+	"folders":
+	[
+		{
+			"path": "../zPost",
+			"folder_exclude_patterns": ["build"],
+			"file_exclude_patterns": []
+		}
+	],
+	"build_systems":
+	[
+		{
+			"cmd": ["zpost-py27/bin/python", "-u","${file}"],
+    		"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+    		"selector": "source.python",            
+    		"name": "zPost"
+		}
+	]
+
+}

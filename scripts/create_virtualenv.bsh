@@ -1,11 +1,41 @@
 #!/bin/bash
 
-cd ..
+echo "zPost IPython installer"
 
+pushd ..
+
+echo "Checking for python"
+
+PYTHON_VER=`python -c 'import sys; print sys.version_info.minor'`
+if [ $PYTHON_VER -ne 7 ]; then
+    echo "Require python version 2.7"
+    exit
+fi
+
+echo "Checking for virtualenv"
+VIRTUAL_ENV=`which virtualenv`
+if [ ! -n $VIRTUAL_ENV ]; then
+	echo "virtualenv not found"
+	exit
+fi
+
+if [ -d "zpost-py27" ]; then
+	\rm -r zpost-py27
+fi
+
+echo "Creating virtual environment"
 virtualenv zpost-py27
 
+echo "Activating virtual environment"
 source zpost-py27/bin/activate
 
+echo "Installing yolk"
 pip install yolk
 
+echo "Installing requirements"
 pip install -r requirements.txt 
+
+yolk -l
+
+popd
+
