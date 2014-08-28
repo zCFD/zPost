@@ -337,15 +337,17 @@ def cf_profile(surface,slice_normal,slice_origin,**kwargs):
             'friction force':fforce}
     
 import csv
-def get_csv_data(filename,header=False,remote=False):
+def get_csv_data(filename,header=False,remote=False,delim=' '):
     
     if remote:
         theory = CSVReader(FileName=[filename])
         theory.HaveHeaders = 0
+        if header:
+            theory.HaveHeaders = 1
         theory.MergeConsecutiveDelimiters = 1
         theory.UseStringDelimiter = 0
         theory.DetectNumericColumns = 1
-        theory.FieldDelimiterCharacters = ' '
+        theory.FieldDelimiterCharacters = delim
         theory.UpdatePipeline()
         
         theory_client = servermanager.Fetch(theory) 
