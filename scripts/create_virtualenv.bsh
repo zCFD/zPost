@@ -8,14 +8,14 @@ echo "Checking for python"
 
 PYTHON_VER=`python -c 'import sys; print sys.version_info.minor'`
 if [ $PYTHON_VER -ne 7 ]; then
-    echo "Require python version 2.7"
+    echo "ERROR: Require python version 2.7"
     exit
 fi
 
 echo "Checking for virtualenv"
 VIRTUAL_ENV=`which virtualenv`
 if [ ! -n $VIRTUAL_ENV ]; then
-	echo "virtualenv not found"
+	echo "ERROR: virtualenv not found"
 	exit
 fi
 
@@ -36,6 +36,8 @@ echo "Installing requirements"
 pip install -r requirements.txt 
 
 yolk -l
+
+deactivate
 
 popd
 
