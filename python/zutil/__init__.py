@@ -1,6 +1,18 @@
 import math
 import sys
 
+def vector_from_angle(alpha,beta,mag=1.0):
+    """
+    Return vector given alpha and beta in degrees based on ESDU definition
+    """
+    alpha = math.radians(alpha)
+    beta = math.radians(beta)
+    vec = [0.0,0.0,0.0]
+    vec[0] = mag*math.cos(alpha)*math.cos(beta);
+    vec[1] = mag*math.sin(beta);
+    vec[2] = mag*math.sin(alpha)*math.cos(beta);
+    return vec
+
 def angle_from_vector(vec):
     """
     Return vector given alpha and beta in degrees based on ESDU definition
