@@ -1,3 +1,6 @@
+""" Helper functions for accessing Paraview functionality
+.. moduleauthor:: Zenotech Ltd
+"""
 from paraview.simple import *
 from paraview.vtk.dataset_adapter import numpyTovtkDataArray
 from paraview.vtk.dataset_adapter import Table
@@ -76,7 +79,22 @@ class GeomFilterGT:
             return False
 
 def calc_force_from_file(file_name,ignore_zone,half_model=False,filter=None,**kwargs):
-    
+    """ Calculates the pressure and friction force
+
+    This function requires that the VTK file contains three cell data arrays
+    called pressureforce, frictionforce and zone
+
+    Args:
+        file_name (str): the VTK file name including path
+        ignore_zone (list): List of zones to be ignored
+
+    Kwargs:
+        half_nodel (bool): Does the data represent only half of the model
+        filter (function):  
+
+    Returns:
+        float, float. pressure force and friction force
+    """
     wall = PVDReader( FileName=file_name)
     wall.UpdatePipeline()
     
@@ -114,6 +132,14 @@ def calc_force(surface_data,ignore_zone,half_model=False,filter=None,**kwargs):
     return pforce, fforce
 
 def get_span(wall):
+    """ Returns the min and max y ordinate
+
+    Args:
+        wall (vtkMultiBlockDataSet): The input surface
+
+    Returns:
+        (float,float). Min y, Max y
+    """
     Calculator1 = Calculator(Input=wall)
     
     Calculator1.AttributeMode = 'Point Data'
@@ -145,7 +171,14 @@ def get_span(wall):
 
 
 def get_chord(slice):
-    
+    """ Returns the min and max x ordinate
+
+    Args:
+        wall (vtkMultiBlockDataSet): The input surface
+
+    Returns:
+        (float,float). Min x, Max x
+    """
     Calculator1 = Calculator(Input=slice)
     
     Calculator1.AttributeMode = 'Point Data'
@@ -176,6 +209,8 @@ def get_chord(slice):
     return [min_pos,max_pos]
 
 def residual_plot(file):
+    """ Plot the _report file
+    """
     l2norm = CSVReader(FileName=[file])
     l2norm.HaveHeaders = 1
     l2norm.MergeConsecutiveDelimiters = 1
@@ -187,24 +222,29 @@ def residual_plot(file):
     l2norm_client = servermanager.Fetch(l2norm) 
     
     table = Table(l2norm_client)
-        
-    fig = pl.figure(figsize=(25, 10),dpi=100, facecolor='w', edgecolor='k')
-    
-    my_names=('cycle','rho','rhou','rhov','rhow','rhoE','rhok','rhow')
-    
+            
     data = table.RowData
     
     names =  data.keys()
     
-    fig.suptitle(file, fontsize=14, fontweight='bold')
+    num_var = len(names)-2
+    num_rows = ((num_var-1)/4)+1
+
+    fig = pl.figure(figsize=(40, 10*num_rows),dpi=100, facecolor='w', edgecolor='k')
+
+    fig.suptitle(file, fontsize=40, fontweight='bold')
     
-    for i in range(1,8):
-        ax = fig.add_subplot(2,4,i)
-        ax.set_yscale('log')
+    for i in range(1,num_var+1):
+        var_name = names[i]
+        ax = fig.add_subplot(num_rows,4,i)
+        if 'rho' in var_name:
+            ax.set_yscale('log')
+            ax.set_ylabel('l2norm '+var_name, multialignment='center')
+        else:
+            ax.set_ylabel(var_name, multialignment='center')
+
         ax.grid(True)
-        #ax.set_title(file)
         ax.set_xlabel('Cycles')
-        ax.set_ylabel('l2norm '+my_names[i], multialignment='center')
     
         ax.plot(data[names[0]], data[names[i]], color='r', label=names[i])
 
