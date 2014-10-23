@@ -2,13 +2,23 @@
 .. moduleauthor:: Zenotech Ltd
 """
 from paraview.simple import *
-from paraview.vtk.dataset_adapter import numpyTovtkDataArray
-from paraview.vtk.dataset_adapter import Table
-from paraview.vtk.dataset_adapter import PolyData
-from paraview.vtk.dataset_adapter import DataSetAttributes
-from paraview.vtk.dataset_adapter import DataSet
-from paraview.vtk.dataset_adapter import CompositeDataSet
-from paraview.vtk.dataset_adapter import PointSet
+try:
+    from paraview.vtk.dataset_adapter import numpyTovtkDataArray
+    from paraview.vtk.dataset_adapter import Table
+    from paraview.vtk.dataset_adapter import PolyData
+    from paraview.vtk.dataset_adapter import DataSetAttributes
+    from paraview.vtk.dataset_adapter import DataSet
+    from paraview.vtk.dataset_adapter import CompositeDataSet
+    from paraview.vtk.dataset_adapter import PointSet
+except:
+    from paraview.vtk.numpy_interface.dataset_adapter import numpyTovtkDataArray
+    from paraview.vtk.numpy_interface.dataset_adapter import Table
+    from paraview.vtk.numpy_interface.dataset_adapter import PolyData
+    from paraview.vtk.numpy_interface.dataset_adapter import DataSetAttributes
+    from paraview.vtk.numpy_interface.dataset_adapter import DataSet
+    from paraview.vtk.numpy_interface.dataset_adapter import CompositeDataSet
+    from paraview.vtk.numpy_interface.dataset_adapter import PointSet
+    
 import pylab as pl
 from zutil import rotate_vector
 import json
