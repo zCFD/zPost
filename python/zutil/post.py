@@ -2,6 +2,7 @@
 .. moduleauthor:: Zenotech Ltd
 """
 from paraview.simple import *
+from paraview.vtk.util import numpy_support
 try:
     from paraview.vtk.dataset_adapter import numpyTovtkDataArray
     from paraview.vtk.dataset_adapter import Table
@@ -18,7 +19,7 @@ except:
     from paraview.vtk.numpy_interface.dataset_adapter import DataSet
     from paraview.vtk.numpy_interface.dataset_adapter import CompositeDataSet
     from paraview.vtk.numpy_interface.dataset_adapter import PointSet
-    
+
 import pylab as pl
 from zutil import rotate_vector
 import json
@@ -360,6 +361,17 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
 
         pforce = rotate_vector(pforce,alpha,beta)
         fforce = rotate_vector(fforce,alpha,beta)
+        """
+        # Add sectional force integration
+        sorted_line = PlotOnSortedLines(Input=chord_calc)
+        sorted_line.UpdatePipeline()
+        sorted_line = servermanager.Fetch(sorted_line)
+        cp_array = sorted_line.GetCellData().GetArray("cp")
+
+        for i in range(0,len(cp_array)):
+            sorted_line.GetPointData().GetArray("X")
+            pass
+        """
         
     if 'func' in kwargs:
         sorted_line = PlotOnSortedLines(Input=chord_calc)
