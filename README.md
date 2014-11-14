@@ -6,6 +6,7 @@ Example IPython notebooks for post processing zCFD results
 Installation instructions:
 
 Ensure you have Python (including virtualenv package) and Paraview installed. 
+Note Paraview needs to use the same version of python
 
 In the scripts folder run 
 

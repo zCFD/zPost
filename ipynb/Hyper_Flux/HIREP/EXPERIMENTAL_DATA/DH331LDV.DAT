@@ -1,0 +1,58 @@
+TITLE:  An Experimental Investigation of the Flow through an Axial-Flow Pump
+AUTHORS:  Zierke, Straka, and Taylor
+JOURNAL PAPER FIGURE(S):  NA
+PSU/ARL TR 93-12 FIGURE(S): 63a
+*****************************************************************************
+DATA TITLE:  Circumferentially-Averaged Velocities and Correlations
+             Measured 4.8% Rotor Tip Chord Axially Downstream of Rotor Tip 
+             Trailing Edge with Laser Doppler Velocimeter
+MEASUREMENT TYPE:  2-component laser Doppler velocimeter
+MEASUREMENT LOCATION:  4.8% rotor tip chord axially downstream of rotor tip 
+                       trailing edge
+NOMINAL CONDITIONS:  
+  vinf = 35.0 ft/sec
+  pref = 43.2 psia
+  rho  = 1.932 slugs/ft^3
+  rotor rpm  = 260
+  rotor tip speed, Utip = 47.6 ft/sec
+  volumetric flow coefficient = 1.36
+  rotor span = 10.50 inches
+  rotor tip chord = 10.49 inches
+DATA COLUMNS:
+  1 --  Filename (ignore)
+  2 --  percent span of measurement axial velocity measurement 
+        (0 is at hub, 100 at outer casing liner)
+  3 --  nondimensional axial velocity mean, Vz / Utip 
+  4 --  nondimensional axial velocity variance, 
+        ((Vz_prime + Vz_tilda)^2 / Utip^2 ) * 100
+  5 --  nondimensional axial velocity nondeterministic unsteadiness,
+        ((Vz_prime * Vz_prime) / Utip^2 ) * 100
+  6 --  nondimensional axial velocity deterministic unsteadiness,
+        ((Vz_tilda * Vz_tilda) / Utip^2 ) * 100
+  7 --  percent span of measurement tangential velocity measurement 
+        (0 is at hub, 100 at outer casing liner)
+  8 --  nondimensional tangential velocity mean, Vt / Utip 
+  9 --  nondimensional tangential velocity variance, 
+        ((Vt_prime + Vt_tilda)^2 / Utip^2 ) * 100
+  10--  nondimensional tangential velocity nondeterministic unsteadiness,
+        ((Vt_prime * Vt_prime) / Utip^2 ) * 100
+  11--  nondimensional tangential velocity deterministic unsteadiness,
+        ((Vt_tilda * Vt_tilda) / Utip^2 ) * 100
+  12--  nondimensional cross-correlation deterministic unsteadiness,
+        ((Vz_tilda * Vt_tilda) / Utip^2 ) * 100
+*****************************************************************************
+331DH107.DAT    99.04762    0.41305    2.15740    2.88490    0.33110    99.36340    0.07231    1.50430    0.77680    0.74230    -0.36820    
+331DH105.DAT    98.57143    0.36511    1.54510    1.08910    1.14340    98.89536    0.06889    1.41000    0.80470    0.63760    -0.70580    
+331DH106.DAT    98.09524    0.38934    1.59190    1.01670    1.02920    98.42731    0.06278    1.27300    0.83240    0.47140    -0.49030    
+331DH108.DAT    97.61904    0.41238    1.78240    1.01220    0.98440    97.95926    0.05585    1.16680    0.83250    0.36100    -0.29990    
+331DH109.DAT    97.14286    0.43845    1.74330    1.03300    0.80310    97.49122    0.04728    1.07000    0.79520    0.29490    -0.11840    
+331DH110.DAT    96.19048    0.49559    1.53860    1.07700    0.44400    96.55514    0.03486    0.82230    0.70720    0.22230    0.06890    
+331DH111.DAT    95.23810    0.54070    1.38610    1.10990    0.23790    95.61905    0.00943    0.74460    0.66760    0.28960    0.15730    
+331DH113.DAT    92.38095    0.66575    1.11360    0.68990    0.39900    92.81078    -0.00059    0.44850    0.43710    0.13260    -0.00510    
+331DH114.DAT    91.42858    0.68808    1.18410    0.65680    0.49500    91.87471    -0.00755    0.38570    0.33110    0.17370    -0.01640    
+331DH115.DAT    90.47619    0.70684    1.21010    0.57050    0.59410    90.93862    -0.01377    0.35180    0.25130    0.21120    -0.03460    
+331DH116.DAT    89.52380    0.72407    1.31620    0.47860    0.76560    90.00253    -0.01804    0.30290    0.17280    0.23540    -0.03000    
+331DH117.DAT    88.09524    0.74323    1.41950    0.38980    0.98600    88.59840    -0.01983    0.21510    0.08670    0.22380    -0.00420    
+331DH118.DAT    85.71429    0.75841    2.05650    0.42260    0.96800    86.25819    -0.02130    0.28990    0.04130    0.24100    0.02790    
+331DH119.DAT    83.33333    0.76130    2.29700    0.46430    0.89730    83.91797    -0.02295    0.38570    0.04180    0.25240    0.04690    
+331DH120.DAT    80.95238    0.77594    2.85150    0.41830    0.48550    81.57777    -0.02667    0.82680    0.02370    0.39670    -0.09320    

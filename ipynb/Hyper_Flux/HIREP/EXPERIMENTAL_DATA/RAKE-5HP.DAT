@@ -1,0 +1,38 @@
+TITLE:  An Experimental Investigation of the Flow through an Axial-Flow Pump
+AUTHORS:  Zierke, Straka, and Taylor
+JOURNAL PAPER FIGURE(S):  NA
+PSU/ARL TR 93-12 FIGURE(S): 32,33
+*****************************************************************************
+DATA TITLE:  Circumferentially-Averaged Velocities and Pressure Coefficients
+             Measured 49.7% IGV Chord Axially Downstream of IGV Trailing Edge
+             with 5-Hole Probe Rake
+MEASUREMENT TYPE:  rotating 5-hole probe rake survey
+MEASUREMENT LOCATION:  49.7% IGV chord downstream of IGV trailing edge
+NOMINAL CONDITIONS:  
+  vinf = 35.0 ft/sec
+  pref = 43.2 psia
+  rho  = 1.932 slugs/ft^3
+  rotor rpm  = 260
+  rotor tip speed, Utip = 47.6 ft/sec
+  volumetric flow coefficient = 1.36
+  IGV span = 10.50 inches
+  IGV chord = 6.90 inches
+DATA COLUMNS:
+  1 --  percent span of measurement (0 is at hub, 100 at outer casing liner)
+  2 --  nondimensional axial velocity, Vz / Utip 
+  3 --  nondimensional radial velocity, Vr / Utip  
+  4 --  nondimensional tangental velocity, Vtheta / Utip   
+  5 --  cpt, total pressure coefficient, = (Ptot - Pref)/(0.5*rho*vinf^2)
+  6 --  cps, static pressure coefficient, = (Psta - Pref)/(0.5*rho*vinf^2)
+*****************************************************************************
+4.76190     0.70967     -0.03045     0.15696     0.98412     -0.00103     
+9.52381     0.72213     0.00069     0.17162     0.98880     -0.03405     
+19.04762     0.71408     -0.00576     0.19486     1.01994     0.00466     
+52.38095     0.72002     -0.01059     0.16749     1.00006     -0.01328     
+61.90475     0.72436     -0.01235     0.16186     1.01911     -0.00270     
+71.42857     0.72946     -0.02312     0.12396     1.00221     -0.01463     
+76.19047     0.72707     -0.01964     0.13453     1.01985     0.00464     
+80.95237     0.73133     -0.01225     0.12229     1.01624     -0.00477     
+85.71428     0.72720     -0.01139     0.09967     0.99066     -0.01030     
+90.47618     0.74628     0.04221     0.07195     0.99144     -0.05589     
+95.23808     0.71552     0.04856     0.07459     0.89193     -0.07655     

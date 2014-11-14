@@ -2,7 +2,7 @@
 
 source ../zpost-py27/bin/activate
 
-PARAVIEW_HOME="/Applications/paraview.app"
+PARAVIEW_HOME="/Applications/Paraview Ipython.app"
 
 export DYLD_FRAMEWORK_PATH=$PARAVIEW_HOME/Contents/Frameworks
 export DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources:$PARAVIEW_HOME/Contents/Libraries

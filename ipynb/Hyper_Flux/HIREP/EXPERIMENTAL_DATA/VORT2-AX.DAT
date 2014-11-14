@@ -1,0 +1,50 @@
+TITLE:  An Experimental Investigation of the Flow through an Axial-Flow Pump
+AUTHORS:  Zierke, Straka, and Taylor
+JOURNAL PAPER FIGURE(S):  NA
+PSU/ARL TR 93-12 FIGURE(S):  85   
+*****************************************************************************
+DATA TITLE:   Vortex Aligned Axial Velocity Distributions for the Rotor Tip 
+              Leakage Vortices Measured at 21.4% Rotor Tip Chord Axially 
+              Downstream Rotor Tip Trailing Edge
+MEASUREMENT TYPE:  2-component Laser Doppler Velocimetry
+MEASUREMENT LOCATION:  21.4% rotor tip chord axially downstream rotor blade 
+                       tip trailing edge
+NOMINAL CONDITIONS:  
+  vinf = 35.0 ft/sec
+  pref = 43.2 psia
+  rho  = 1.932 slugs/ft^3
+  rotor rpm  = 260
+  rotor tip speed, Utip = 47.6 ft/sec
+  volumetric flow coefficient = 1.36
+  rotor chord = variable with span (10.49 inches @ tip, 11.22 inches @ hub)
+  rotor span  = 10.50 inches
+DATA COLUMNS:
+  1 -- Percent Span of Measurement (100.0% at liner, 0.0% at hub)
+  2 -- Axial Velocity Perturbation for blade #1, Vz-Vzmean, [ft/sec] 
+  3 -- Axial Velocity Perturbation for blade #2, Vz-Vzmean, [ft/sec] 
+  4 -- Axial Velocity Perturbation for blade #3, Vz-Vzmean, [ft/sec] 
+  5 -- Axial Velocity Perturbation for blade #4, Vz-Vzmean, [ft/sec] 
+  6 -- Axial Velocity Perturbation for blade #5, Vz-Vzmean, [ft/sec] 
+  7 -- Axial Velocity Perturbation for blade #6, Vz-Vzmean, [ft/sec] 
+  8 -- Axial Velocity Perturbation for blade #7, Vz-Vzmean, [ft/sec] 
+*****************************************************************************
+99.04761     2.47150     3.93540     2.98020     3.54350     4.61010     3.67400     0.36038    
+98.57142    -0.13296     2.86780     1.30810     1.91400     2.52600     1.45730    -1.07680    
+98.09522    -0.51823     0.58837    -1.17370     0.80717     0.46431     0.64384    -2.45610    
+97.61904    -3.94960    -2.81930    -1.45050    -3.68060    -2.40700    -1.33570    -5.57470    
+97.14285    -5.33170    -5.10990    -4.25040    -5.59530    -4.06980    -4.56550    -7.53680    
+96.19047    -9.48600    -8.61930    -8.98600    -9.03800    -8.81960    -8.32810   -10.55500    
+95.23808   -10.67400    -9.66700    -9.95710   -12.38100   -10.27800   -10.92100   -12.39600    
+94.28571   -12.80800   -11.95000   -11.37000   -12.81000   -12.57400   -11.43000   -12.67900    
+92.38094   -11.37400   -11.10000    -9.34510   -10.24900   -10.98100   -10.60000   -10.27600    
+91.42857   -10.49400    -9.71640    -9.31800   -10.42700    -9.80310    -7.93180    -8.63950    
+90.47618    -8.98610    -7.87460    -7.53360    -8.01100    -6.17230    -6.33390    -5.15380    
+89.52380    -4.79980    -6.06430    -3.83360    -4.97580    -5.39950    -4.08570    -4.93220    
+88.09523    -2.40140    -2.18500    -2.45010    -2.39560    -2.36120    -1.32180    -1.68220    
+85.71428     0.04409     0.27537     0.42407     0.37299     0.16352     0.74082     0.34336    
+83.33333     1.12170     1.01980     0.85388     0.72685     0.99471     0.76611     0.93293    
+80.95237     0.99830     0.98251     0.86043     0.81764     1.07070     0.84433     0.87074    
+76.19047     0.79674     0.92267     0.91294     0.87275     1.00900     0.89039     0.89898    
+66.66666     1.19300     1.15350     1.09580     1.06220     1.21570     1.06750     0.99931    
+57.14285     1.35470     1.36140     1.24380     1.21850     1.30330     1.20550     1.18180    
+47.61904     1.49440     1.51560     1.42610     1.38870     1.63580     1.36460     1.23520    

@@ -1,0 +1,45 @@
+TITLE:  An Experimental Investigation of the Flow through an Axial-Flow Pump
+AUTHORS:  Zierke, Straka, and Taylor
+JOURNAL PAPER FIGURE(S):  NA
+PSU/ARL TR 93-12 FIGURE(S):  84   
+*****************************************************************************
+DATA TITLE:   Vortex Aligned Tangential Velocity Distributions for the Rotor 
+              Leakage Vortices Measured at 4.8% Rotor Tip Chord Axially 
+              Downstream Rotor Tip Trailing Edge
+MEASUREMENT TYPE:  2-component Laser Doppler Velocimetry
+MEASUREMENT LOCATION:  4.8% rotor tip chord axially downstream rotor blade 
+                       tip trailing edge
+NOMINAL CONDITIONS:  
+  vinf = 35.0 ft/sec
+  pref = 43.2 psia
+  rho  = 1.932 slugs/ft^3
+  rotor rpm  = 260
+  rotor tip speed, Utip = 47.6 ft/sec
+  volumetric flow coefficient = 1.36
+  rotor chord = variable with span (10.49 inches @ tip, 11.22 inches @ hub)
+  rotor span  = 10.50 inches
+DATA COLUMNS:
+  1 -- Percent Span of Measurement (100.0% at liner, 0.0% at hub)
+  2 -- Tangential Velocity Perturbation for blade #1, Vt-Vtmean, [ft/sec] 
+  3 -- Tangential Velocity Perturbation for blade #2, Vt-Vtmean, [ft/sec] 
+  4 -- Tangential Velocity Perturbation for blade #3, Vt-Vtmean, [ft/sec] 
+  5 -- Tangential Velocity Perturbation for blade #4, Vt-Vtmean, [ft/sec] 
+  6 -- Tangential Velocity Perturbation for blade #5, Vt-Vtmean, [ft/sec] 
+  7 -- Tangential Velocity Perturbation for blade #6, Vt-Vtmean, [ft/sec] 
+  8 -- Tangential Velocity Perturbation for blade #7, Vt-Vtmean, [ft/sec] 
+*****************************************************************************
+99.36338     6.03020     6.38970     2.94680     8.90190     4.51300     3.93750     6.54350    
+98.89534    11.85200     9.49910     8.35430    16.36000    16.14300    13.55800    14.56300    
+98.42729     9.07190     9.17350     5.78900    13.02900    14.70300    12.29000    11.84800    
+97.95924     8.23810     7.84030     6.65040    11.86600    12.89200    10.90100    11.78500    
+97.49121     4.90470     5.11560     4.73040    11.18800    10.33600     6.61540     9.23980    
+96.55512     5.28790     3.80240     2.40710     6.72570     5.34120     4.84010     6.54970    
+95.61904     3.71350     0.07739     0.59420     2.41590     1.84170     0.31978     2.31660    
+92.81078    -1.81090    -2.15350    -1.48280    -4.30940    -5.88280    -4.73150    -4.80090    
+91.87469    -3.03060    -3.94960    -3.79490    -5.61600    -6.68140    -5.31610    -4.58780    
+90.93861    -3.08390    -3.90590    -4.53800    -6.61220    -6.98960    -5.77510    -6.17120    
+90.00253    -4.01180    -4.77800    -4.40890    -6.63830    -7.83930    -6.20170    -6.31020    
+88.59840    -4.78880    -5.11970    -5.33340    -7.10430    -7.15990    -6.21250    -6.44290    
+86.25818    -5.15390    -4.88760    -4.95680    -6.69820    -6.66990    -5.44280    -5.98610    
+83.91797    -3.89240    -4.21410    -4.02120    -5.30660    -4.58830    -4.33710    -4.86240    
+81.57775    -2.86510    -2.66190    -2.42130    -3.30860    -3.21260    -2.58760    -3.02800    

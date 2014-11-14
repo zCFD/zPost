@@ -175,6 +175,39 @@ def get_chord(slice):
     
     return [min_pos,max_pos]
 
+def get_chord_spanwise(slice):
+    
+    Calculator1 = Calculator(Input=slice)
+    
+    Calculator1.AttributeMode = 'Point Data'
+    Calculator1.Function = 'coords.jHat'
+    Calculator1.ResultArrayName = 'ypos'
+    Calculator1.UpdatePipeline()
+
+    ymin = MinMax(Input=Calculator1)
+    ymin.Operation = "MIN"
+    ymin.UpdatePipeline()
+    
+    ymin_client = servermanager.Fetch(ymin)
+    
+    min_pos = ymin_client.GetPointData().GetArray("ypos").GetValue(0)
+    
+    ymax = MinMax(Input=Calculator1)
+    ymax.Operation = "MAX"
+    ymax.UpdatePipeline()
+    
+    ymax_client = servermanager.Fetch(ymax)
+    
+    max_pos  = ymax_client.GetPointData().GetArray("ypos").GetValue(0)
+
+    Delete(ymin);
+    Delete(ymax);    
+    Delete(Calculator1);
+    
+    return [min_pos,max_pos]
+
+
+
 def residual_plot(file):
     l2norm = CSVReader(FileName=[file])
     l2norm.HaveHeaders = 1
@@ -236,6 +269,18 @@ def cp_profile_wall_from_file(file_root,slice_normal,slice_origin,**kwargs):
     merged.UpdatePipeline()
     return cp_profile(merged,slice_normal,slice_origin,**kwargs)
 
+def cp_profile_wall_from_file_span(file_root,slice_normal,slice_origin,**kwargs):
+    
+    wall = PVDReader( FileName=file_root+'_wall.pvd' )
+    clean = CleantoGrid(Input=wall)
+    clean.UpdatePipeline()
+    merged = MergeBlocks(Input=clean)
+    merged.UpdatePipeline()
+    return cp_profile_span(merged,slice_normal,slice_origin,**kwargs)
+
+
+
+
 def cp_profile(surface,slice_normal,slice_origin,**kwargs):
 
     alpha = 0.0
@@ -247,6 +292,7 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
         
     point_data = CellDatatoPointData(Input=surface)
     point_data.PassCellData = 1 
+
     
     slice = Slice(Input=point_data, SliceType="Plane" )
     
@@ -256,7 +302,8 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
     slice.UpdatePipeline()
         
     offset = get_chord(slice)
-    
+    #define the cuts and make sure the is the one one you want
+    # make the 
     chord_calc = Calculator(Input=slice)
     
     chord_calc.AttributeMode = 'Point Data'
@@ -273,7 +320,59 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
 
     pforce = rotate_vector(pforce,alpha,beta)
     fforce = rotate_vector(fforce,alpha,beta)
+
+    if 'func' in kwargs:
+        sorted_line = PlotOnSortedLines(Input=chord_calc)
+        sorted_line.UpdatePipeline()
+        extract_client = servermanager.Fetch(sorted_line) 
+        for_each(extract_client,**kwargs)
+        
+    return {'pressure force':pforce,
+            'friction force':fforce}
+
+def cp_profile_span(surface,slice_normal,slice_origin,**kwargs):
+
+    alpha = 0.0
+    if 'alpha' in kwargs:
+        alpha = kwargs['alpha']        
+    beta = 0.0
+    if 'beta' in kwargs:
+        beta = kwargs['beta']
+        
+    point_data = CellDatatoPointData(Input=surface)
+    point_data.PassCellData = 1 
+    clip = Clip(Input = point_data, ClipType = "Plane")
+    clip.ClipType.Normal = [0.0, 1.0, 0.0]
+    clip.ClipType.Origin = [0.0 , 0.0 , 0.0]
+    clip.UpdatePipeline()
+
+    slice = Slice(Input=clip, SliceType="Plane" )
     
+    slice.SliceType.Normal = slice_normal
+    slice.SliceType.Origin = slice_origin
+    
+    slice.UpdatePipeline()
+        
+    offset = get_chord_spanwise(slice)
+    #define the cuts and make sure the is the one one you want
+    # make the 
+    chord_calc = Calculator(Input=slice)
+    
+    chord_calc.AttributeMode = 'Point Data'
+    chord_calc.Function = '(coords.jHat - '+str(offset[0])+')/'+str(offset[1]-offset[0])
+    chord_calc.ResultArrayName = 'chord'
+
+    sum = MinMax(Input=slice)
+    sum.Operation = "SUM"
+    sum.UpdatePipeline()
+
+    sum_client = servermanager.Fetch(sum)    
+    pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
+    fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
+
+    pforce = rotate_vector(pforce,alpha,beta)
+    fforce = rotate_vector(fforce,alpha,beta)
+
     if 'func' in kwargs:
         sorted_line = PlotOnSortedLines(Input=chord_calc)
         sorted_line.UpdatePipeline()
