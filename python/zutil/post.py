@@ -1,11 +1,25 @@
+""" Helper functions for accessing Paraview functionality
+.. moduleauthor:: Zenotech Ltd
+"""
 from paraview.simple import *
-from paraview.vtk.dataset_adapter import numpyTovtkDataArray
-from paraview.vtk.dataset_adapter import Table
-from paraview.vtk.dataset_adapter import PolyData
-from paraview.vtk.dataset_adapter import DataSetAttributes
-from paraview.vtk.dataset_adapter import DataSet
-from paraview.vtk.dataset_adapter import CompositeDataSet
-from paraview.vtk.dataset_adapter import PointSet
+from paraview.vtk.util import numpy_support
+try:
+    from paraview.vtk.dataset_adapter import numpyTovtkDataArray
+    from paraview.vtk.dataset_adapter import Table
+    from paraview.vtk.dataset_adapter import PolyData
+    from paraview.vtk.dataset_adapter import DataSetAttributes
+    from paraview.vtk.dataset_adapter import DataSet
+    from paraview.vtk.dataset_adapter import CompositeDataSet
+    from paraview.vtk.dataset_adapter import PointSet
+except:
+    from paraview.vtk.numpy_interface.dataset_adapter import numpyTovtkDataArray
+    from paraview.vtk.numpy_interface.dataset_adapter import Table
+    from paraview.vtk.numpy_interface.dataset_adapter import PolyData
+    from paraview.vtk.numpy_interface.dataset_adapter import DataSetAttributes
+    from paraview.vtk.numpy_interface.dataset_adapter import DataSet
+    from paraview.vtk.numpy_interface.dataset_adapter import CompositeDataSet
+    from paraview.vtk.numpy_interface.dataset_adapter import PointSet
+
 import pylab as pl
 from zutil import rotate_vector
 import json
@@ -76,7 +90,22 @@ class GeomFilterGT:
             return False
 
 def calc_force_from_file(file_name,ignore_zone,half_model=False,filter=None,**kwargs):
-    
+    """ Calculates the pressure and friction force
+
+    This function requires that the VTK file contains three cell data arrays
+    called pressureforce, frictionforce and zone
+
+    Args:
+        file_name (str): the VTK file name including path
+        ignore_zone (list): List of zones to be ignored
+
+    Kwargs:
+        half_nodel (bool): Does the data represent only half of the model
+        filter (function):  
+
+    Returns:
+        float, float. pressure force and friction force
+    """
     wall = PVDReader( FileName=file_name)
     wall.UpdatePipeline()
     
@@ -114,6 +143,14 @@ def calc_force(surface_data,ignore_zone,half_model=False,filter=None,**kwargs):
     return pforce, fforce
 
 def get_span(wall):
+    """ Returns the min and max y ordinate
+
+    Args:
+        wall (vtkMultiBlockDataSet): The input surface
+
+    Returns:
+        (float,float). Min y, Max y
+    """
     Calculator1 = Calculator(Input=wall)
     
     Calculator1.AttributeMode = 'Point Data'
@@ -144,9 +181,23 @@ def get_span(wall):
     return [min_pos,max_pos]
 
 
-def get_chord(slice):
-    
-    Calculator1 = Calculator(Input=slice)
+def get_chord(slice,rotate_geometry=[0.0,0.0,0.0]):
+    """ Returns the min and max x ordinate
+
+    Args:
+        wall (vtkMultiBlockDataSet): The input surface
+
+    Returns:
+        (float,float). Min x, Max x
+    """
+
+    transform = Transform(Input=slice, Transform="Transform")
+    transform.Transform.Scale = [1.0,1.0,1.0]
+    transform.Transform.Translate = [0.0,0.0,0.0]
+    transform.Transform.Rotate = rotate_geometry
+    transform.UpdatePipeline()
+
+    Calculator1 = Calculator(Input=transform)
     
     Calculator1.AttributeMode = 'Point Data'
     Calculator1.Function = 'coords.iHat'
@@ -172,6 +223,7 @@ def get_chord(slice):
     Delete(xmin);
     Delete(xmax);    
     Delete(Calculator1);
+    Delete(transform)
     
     return [min_pos,max_pos]
 
@@ -209,6 +261,8 @@ def get_chord_spanwise(slice):
 
 
 def residual_plot(file):
+    """ Plot the _report file
+    """
     l2norm = CSVReader(FileName=[file])
     l2norm.HaveHeaders = 1
     l2norm.MergeConsecutiveDelimiters = 1
@@ -220,24 +274,29 @@ def residual_plot(file):
     l2norm_client = servermanager.Fetch(l2norm) 
     
     table = Table(l2norm_client)
-        
-    fig = pl.figure(figsize=(25, 10),dpi=100, facecolor='w', edgecolor='k')
-    
-    my_names=('cycle','rho','rhou','rhov','rhow','rhoE','rhok','rhow')
-    
+            
     data = table.RowData
     
     names =  data.keys()
     
-    fig.suptitle(file, fontsize=14, fontweight='bold')
+    num_var = len(names)-2
+    num_rows = ((num_var-1)/4)+1
+
+    fig = pl.figure(figsize=(40, 10*num_rows),dpi=100, facecolor='w', edgecolor='k')
+
+    fig.suptitle(file, fontsize=40, fontweight='bold')
     
-    for i in range(1,8):
-        ax = fig.add_subplot(2,4,i)
-        ax.set_yscale('log')
+    for i in range(1,num_var+1):
+        var_name = names[i]
+        ax = fig.add_subplot(num_rows,4,i)
+        if 'rho' in var_name:
+            ax.set_yscale('log')
+            ax.set_ylabel('l2norm '+var_name, multialignment='center')
+        else:
+            ax.set_ylabel(var_name, multialignment='center')
+
         ax.grid(True)
-        #ax.set_title(file)
         ax.set_xlabel('Cycles')
-        ax.set_ylabel('l2norm '+my_names[i], multialignment='center')
     
         ax.plot(data[names[0]], data[names[i]], color='r', label=names[i])
 
@@ -290,6 +349,14 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
     if 'beta' in kwargs:
         beta = kwargs['beta']
         
+    time_average = False
+    if 'time_average' in kwargs:
+        time_average = kwargs['time_average']
+
+    rotate_geometry = [0.0,0.0,0.0]
+    if 'rotate_geometry' in kwargs:
+        rotate_geometry = kwargs['rotate_geometry']
+
     point_data = CellDatatoPointData(Input=surface)
     point_data.PassCellData = 1 
 
@@ -301,25 +368,56 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
     
     slice.UpdatePipeline()
         
-    offset = get_chord(slice)
-    #define the cuts and make sure the is the one one you want
-    # make the 
-    chord_calc = Calculator(Input=slice)
+    if time_average:
+        temporal = TemporalStatistics(Input=slice)
+        temporal.ComputeMaximum = 0
+        temporal.ComputeStandardDeviation = 0
+        temporal.ComputeMinimum = 0
+        temporal.UpdatePipeline()
+        slice = temporal
+
+    offset = get_chord(slice,rotate_geometry)
+    
+    transform = Transform(Input=slice, Transform="Transform")
+    transform.Transform.Scale = [1.0,1.0,1.0]
+    transform.Transform.Translate = [0.0,0.0,0.0]
+    transform.Transform.Rotate = rotate_geometry
+    transform.UpdatePipeline()
+
+    chord_calc = Calculator(Input=transform)
     
     chord_calc.AttributeMode = 'Point Data'
     chord_calc.Function = '(coords.iHat - '+str(offset[0])+')/'+str(offset[1]-offset[0])
     chord_calc.ResultArrayName = 'chord'
 
+
+    # Attempt to calculate forces
+    pforce = [0.0,0.0,0.0]
+    fforce = [0.0,0.0,0.0]
+
     sum = MinMax(Input=slice)
     sum.Operation = "SUM"
     sum.UpdatePipeline()
 
-    sum_client = servermanager.Fetch(sum)    
-    pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
-    fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
+    sum_client = servermanager.Fetch(sum) 
+    if sum_client.GetCellData().GetArray("pressureforce") and sum_client.GetCellData().GetArray("frictionforce"):
+       
+        pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
+        fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
 
-    pforce = rotate_vector(pforce,alpha,beta)
-    fforce = rotate_vector(fforce,alpha,beta)
+        pforce = rotate_vector(pforce,alpha,beta)
+        fforce = rotate_vector(fforce,alpha,beta)
+        """
+        # Add sectional force integration
+        sorted_line = PlotOnSortedLines(Input=chord_calc)
+        sorted_line.UpdatePipeline()
+        sorted_line = servermanager.Fetch(sorted_line)
+        cp_array = sorted_line.GetCellData().GetArray("cp")
+
+        for i in range(0,len(cp_array)):
+            sorted_line.GetPointData().GetArray("X")
+            pass
+        """
 
     if 'func' in kwargs:
         sorted_line = PlotOnSortedLines(Input=chord_calc)
@@ -437,7 +535,8 @@ def cf_profile(surface,slice_normal,slice_origin,**kwargs):
     
 import csv
 def get_csv_data(filename,header=False,remote=False,delim=' '):
-    
+    """ Get csv data
+    """
     if remote:
         theory = CSVReader(FileName=[filename])
         theory.HaveHeaders = 0
@@ -486,7 +585,7 @@ def get_fw_csv_data(filename,widths,header=False,remote=False,**kwargs):
         if not header:
             data = pd.read_fwf(filename,sep=' ',header=None,widths=widths,**kwargs)
         else:
-            data = pd.read_fwf(filename,sep=' ',width=width,**kwargs)
+            data = pd.read_fwf(filename,sep=' ',width=widths,**kwargs)
           
     return data
 
