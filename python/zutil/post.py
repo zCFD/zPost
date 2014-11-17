@@ -651,7 +651,9 @@ def pvserver(remote_dir,paraview_cmd,paraview_port,paraview_remote_port):
             run('sleep 2;'+paraview_cmd+'&>/dev/null',pty=False)
         #run(paraview_cmd+'</dev/null &>/dev/null',pty=False)
         #run('screen -d -m "yes"')
-    
+    #ssh asrc2 "(ls</dev/null &>/dev/null&) 2>&1; true" 2>/dev/null || echo SSH connection or remote command failed - either of them returned non-zero exit code $?
+
+
 def get_case_file():
     with cd(remote_dir):
         get(case_name+'.py','%(path)s')
@@ -820,7 +822,7 @@ import uuid
 import time
 from IPython.display import HTML, Javascript, display
 
-class ProgressBar:
+class ProgressBar(object):
     
     def __init__(self):
         self.divid = str(uuid.uuid4())

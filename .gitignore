@@ -52,6 +52,8 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+.ipynb_checkpoints/
+
 zpost-py27/
 
 ipynb/NACA0012/.ipynb_checkpoints/
@@ -97,3 +99,5 @@ ipynb/Hyper_Flux/2nd_High_Lift_Prediction_Workshop/.ipynb_checkpoints/Untitled0-
 ipynb/Hyper_Flux/2nd_High_Lift_Prediction_Workshop/.ipynb_checkpoints/Untitled1-checkpoint.ipynb
 
 ipynb/NACA0021/.ipynb_checkpoints/
+
+ipynb/3D_CAVITY/.ipynb_checkpoints/cavity-Re=3200-checkpoint.ipynb
