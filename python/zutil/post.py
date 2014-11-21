@@ -668,7 +668,7 @@ def pvcluster(remote_dir,paraview_home,paraview_args,paraview_port,paraview_remo
         with shell_env(PARAVIEW_HOME=paraview_home,PARAVIEW_ARGS=paraview_args):
             run('echo $PARAVIEW_HOME')
             run('echo $PARAVIEW_ARGS')
-            run('mkdir '+remote_dir)
+            run('mkdir -p '+remote_dir)
             with cd(remote_dir):
                 cmd_line  = 'mycluster --create pvserver.job --jobname=pvserver'
                 cmd_line += ' --jobqueue ' + job_dict['job_queue'] 
@@ -677,7 +677,8 @@ def pvcluster(remote_dir,paraview_home,paraview_args,paraview_port,paraview_remo
                 cmd_line += ' --script mycluster-paraview.bsh'
                 cmd_line += ' --project ' + job_dict['job_project']
                 run(cmd_line)
-                #run('mycluster --immediate --submit pverver.job')
+                run('chmod u+rx pvserver.job')
+                run('mycluster --immediate --submit pvserver.job')
             
 def port_test(rport,lport):
     # Run a test
