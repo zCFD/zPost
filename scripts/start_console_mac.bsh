@@ -1,8 +1,6 @@
 #!/bin/bash 
 
-source ../zpost-py27/bin/activate
-
-echo Using Python from: `which python`
+#source ../zpost-py27/bin/activate
 
 if [ -z "$PARAVIEW_HOME" ] ; then
 	PARAVIEW_HOME="/Applications/paraview.app"
@@ -15,4 +13,4 @@ export DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A
 export PYTHONPATH=/$PARAVIEW_HOME/Contents/Python:$PARAVIEW_HOME/Contents/Libraries:`pwd`/../python
 
 cd ../ipynb
-ipython notebook
+ipython qtconsole 

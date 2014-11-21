@@ -25,6 +25,7 @@ from zutil import rotate_vector
 import json
 from zutil import mag
 import math
+import time
 
 def sum_and_zone_filter_array(input,array_name,ignore_zone,filter=None):
     sum = [0.0,0.0,0.0]
@@ -638,21 +639,50 @@ def sum_array(input,array_name):
             sum[i] += v[i]                        
     return sum
   
-from fabric.api import env, run, cd, get, hide, settings, remote_tunnel, show
+from fabric.api import env, run, cd, get, hide, settings, remote_tunnel, show, shell_env
 from fabric.tasks import execute
+
+
+import logging
+log = logging.getLogger("paramiko.transport")
+sh = logging.StreamHandler()
+sh.setLevel(logging.DEBUG)
+log.addHandler(sh)
 
 def pvserver(remote_dir,paraview_cmd,paraview_port,paraview_remote_port):
     
-    #with show('debug'), remote_tunnel(paraview_remote_port,local_port=paraview_port), cd(remote_dir):
-    with cd(remote_dir):
+    with show('debug'), remote_tunnel(int(paraview_remote_port),local_port=int(paraview_port)), cd(remote_dir):
+        #with cd(remote_dir):
         if not use_multiprocess:
             run('sleep 2;'+paraview_cmd+'</dev/null &>/dev/null&',pty=False)
         else:
-            run('sleep 2;'+paraview_cmd+'&>/dev/null',pty=False)
+            #run('sleep 2;'+paraview_cmd+'&>/dev/null',pty=False)
+            run('sleep 2;'+paraview_cmd)#,pty=False)
         #run(paraview_cmd+'</dev/null &>/dev/null',pty=False)
         #run('screen -d -m "yes"')
     #ssh asrc2 "(ls</dev/null &>/dev/null&) 2>&1; true" 2>/dev/null || echo SSH connection or remote command failed - either of them returned non-zero exit code $?
 
+def pvcluster(remote_dir,paraview_home,paraview_args,paraview_port,paraview_remote_port,job_dict):
+    
+    with show('debug'), remote_tunnel(int(paraview_remote_port),local_port=int(paraview_port)):
+        with shell_env(PARAVIEW_HOME=paraview_home,PARAVIEW_ARGS=paraview_args):
+            run('echo $PARAVIEW_HOME')
+            run('echo $PARAVIEW_ARGS')
+            run('mkdir '+remote_dir)
+            with cd(remote_dir):
+                cmd_line  = 'mycluster --create pvserver.job --jobname=pvserver'
+                cmd_line += ' --jobqueue ' + job_dict['job_queue'] 
+                cmd_line += ' --ntasks ' + job_dict['job_ntasks']
+                cmd_line += ' --taskpernode ' + job_dict['job_ntaskpernode']
+                cmd_line += ' --script mycluster-paraview.bsh'
+                cmd_line += ' --project ' + job_dict['job_project']
+                run(cmd_line)
+                #run('mycluster --immediate --submit pverver.job')
+            
+def port_test(rport,lport):
+    # Run a test
+    with hide('everything'), remote_tunnel(int(rport),local_port=int(lport)):
+        run('cd')
 
 def get_case_file():
     with cd(remote_dir):
@@ -694,9 +724,6 @@ def pvserver_connect(**kwargs):
     paraview_port = '11111'
     if 'paraview_port' in kwargs:
         paraview_port = kwargs['paraview_port' ]
-    paraview_remote_port = '11113'
-    if 'paraview_remote_port' in kwargs:
-        paraview_remote_port = kwargs['paraview_remote_port' ]
 
     if not use_multiprocess:
         pvserver_process(**kwargs)        
@@ -704,11 +731,17 @@ def pvserver_connect(**kwargs):
         process_id = Process(target=pvserver_process, kwargs=kwargs)
         process_id.start()
     
+    time.sleep(3)
+
     ReverseConnect(paraview_port)
+
+
+def pvcluster_process(**kwargs):
+    pvserver_process(**kwargs)
     
 def pvserver_process(**kwargs):
         
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,paraview_port,paraview_remote_port
+    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,paraview_home,paraview_port,paraview_remote_port
     
     _remote_dir = data_dir
     if 'data_dir' in kwargs:
@@ -716,13 +749,66 @@ def pvserver_process(**kwargs):
     _paraview_cmd = paraview_cmd
     if 'paraview_cmd' in kwargs:
         _paraview_cmd = kwargs['paraview_cmd' ]
+    _paraview_home = paraview_home
+    if 'paraview_home' in kwargs:
+        _paraview_home = kwargs['paraview_home' ]
+    paraview_port = '11111'
+    if 'paraview_port' in kwargs:
+        paraview_port = kwargs['paraview_port' ]
+
+    _job_ntasks = 1
+    if 'job_ntasks' in kwargs:
+        _job_ntasks = kwargs['job_ntasks' ]
+
     _remote_host = data_host
     if 'data_host' in kwargs:
         _remote_host = kwargs['data_host' ]
-          
-    if paraview_cmd != None:
-        env.use_ssh_config = True
-        execute(pvserver,_remote_dir,_paraview_cmd,paraview_port,paraview_remote_port,hosts=[_remote_host])    
+
+    paraview_remote_port = '11113'
+    if 'paraview_remote_port' in kwargs:
+        paraview_remote_port = kwargs['paraview_remote_port' ]
+    else:
+        # Attempt to find an unused remote port
+        for p in range(12000,13000):
+            try:
+                env.use_ssh_config = True
+                execute(port_test,p,paraview_port,hosts=[_remote_host])
+                break
+            except:
+                pass
+        print 'Selected Port: '+str(p)
+        paraview_remote_port = p      
+
+    if 'job_queue' in kwargs:
+        # Submit job
+
+        remote_hostname = _remote_host[_remote_host.find('@')+1:]
+
+        paraview_args = ' -rc --client-host='+remote_hostname+' -sp='+str(paraview_remote_port)
+
+        print paraview_args
+ 
+        job_dict = {
+            'job_queue' : kwargs['job_queue'], 
+            'job_ntasks' : kwargs['job_ntasks'],
+            'job_ntaskpernode' : kwargs['job_ntaskpernode'],
+            'job_project' : kwargs['job_project'], 
+        }
+        if _paraview_home != None:
+            env.use_ssh_config = True
+            execute(pvcluster,_remote_dir,_paraview_home,paraview_args,
+                paraview_port,paraview_remote_port,job_dict,hosts=[_remote_host])    
+    else:
+        # Run Paraview
+        if '-sp' in _paraview_cmd or '--client-host' in _paraview_cmd:
+            print 'pvserver_process: Please only provide executable name without arguments'
+            return False  
+
+        _paraview_cmd = _paraview_cmd + ' -rc --client-host=localhost -sp='+str(paraview_remote_port)
+              
+        if _paraview_cmd != None:
+            env.use_ssh_config = True
+            execute(pvserver,_remote_dir,_paraview_cmd,paraview_port,paraview_remote_port,hosts=[_remote_host])    
 
 def pvserver_disconnect():
     Disconnect()
@@ -853,6 +939,8 @@ data_dir = 'data'
 data_host = 'user@server'
 remote_server_auto = True
 paraview_cmd = 'mpiexec ~/apps/Paraview/bin/pvserver -rc --client-host=localhost -sp=11113'
+paraview_home = '/usr/local/bin/'
+
 
 def data_location_form_html(**kwargs):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd

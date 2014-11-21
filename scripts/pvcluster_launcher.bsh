@@ -1,5 +1,9 @@
 #!/bin/bash 
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR
+
 source ../zpost-py27/bin/activate
 
 echo Using Python from: `which python`
@@ -14,5 +18,5 @@ export DYLD_FRAMEWORK_PATH=$PARAVIEW_HOME/Contents/Frameworks
 export DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources:$PARAVIEW_HOME/Contents/Libraries
 export PYTHONPATH=/$PARAVIEW_HOME/Contents/Python:$PARAVIEW_HOME/Contents/Libraries:`pwd`/../python
 
-cd ../ipynb
-ipython notebook
+cd ../python
+python pvcluster_launcher.py $* 
