@@ -7,5 +7,5 @@ cd $DIR
 # Setup the environment
 . zpost_config.bsh
 
-cd ../python
-python pvcluster_launcher.py $* 
+cd ../ipynb
+ipython qtconsole 

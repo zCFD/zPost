@@ -4,19 +4,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd $DIR
 
-source ../zpost-py27/bin/activate
-
-echo Using Python from: `which python`
-
-if [ -z "$PARAVIEW_HOME" ] ; then
-	PARAVIEW_HOME="/Applications/paraview.app"
-fi
-
-echo Using ParaView from: $PARAVIEW_HOME
-
-export DYLD_FRAMEWORK_PATH=$PARAVIEW_HOME/Contents/Frameworks
-export DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources:$PARAVIEW_HOME/Contents/Libraries
-export PYTHONPATH=/$PARAVIEW_HOME/Contents/Python:$PARAVIEW_HOME/Contents/Libraries:`pwd`/../python
+# Setup the environment
+. zpost_config.bsh
 
 cd ../python
 python pvserver_launcher.py $* 
