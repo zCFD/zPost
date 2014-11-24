@@ -8,4 +8,12 @@ cd $DIR
 . zpost_config.bsh
 
 cd ../ipynb
-ipython qtconsole 
+
+# Add Check for pyside
+PYSIDE_FILE=`python -c 'import PySide.QtGui;'`
+if [ -n "$PYSIDE_FILE" ]; then
+	ipython qtconsole 
+else
+	ipython console 	
+fi
+

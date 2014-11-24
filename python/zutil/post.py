@@ -802,7 +802,8 @@ def pvserver_process(**kwargs):
     else:
         # Run Paraview
         if '-sp' in _paraview_cmd or '--client-host' in _paraview_cmd:
-            print 'pvserver_process: Please only provide executable name without arguments'
+            print 'pvserver_process: Please only provide pvserver executable path and name without arguments'
+            print 'e.g. mpiexec -n 1 /path_to_pvserver/bin/pvserver'
             return False  
 
         _paraview_cmd = _paraview_cmd + ' -rc --client-host=localhost -sp='+str(paraview_remote_port)
