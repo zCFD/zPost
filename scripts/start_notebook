@@ -8,5 +8,9 @@ cd $DIR
 . zpost_config.bsh
 
 # Start the notebook
-cd ../ipynb
+if [ "$1" != "" ]; then
+	cd $1
+else
+	cd ../ipynb
+fi
 ipython notebook
