@@ -12,7 +12,7 @@ ZPOST_VIRTUALENV=../zpost-py27/bin/activate
 
 # Add check for virtualenv
 if [ ! -f $ZPOST_VIRTUALENV ]; then
-	echo Python virtual environment missing. Please run create_virtual script
+	echo Python virtual environment missing. Please run create_virtualenv script
 	exit
 fi
 

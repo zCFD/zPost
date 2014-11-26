@@ -785,10 +785,13 @@ def pvserver_process(**kwargs):
 
         remote_hostname = _remote_host[_remote_host.find('@')+1:]
 
-        paraview_args = ' -rc --client-host='+remote_hostname+' -sp='+str(paraview_remote_port)
+        if 'vizstack' in kwargs:
+            paraview_args = '/opt/vizstack/bin/viz-paraview -r '+ str(kwargs['job_ntasks']) +' -c ' + remote_hostname + ' -p ' +  str(paraview_remote_port) 
+        else:
+            paraview_args = ' -rc --client-host='+remote_hostname+' -sp='+str(paraview_remote_port)
 
         print paraview_args
- 
+
         job_dict = {
             'job_queue' : kwargs['job_queue'], 
             'job_ntasks' : kwargs['job_ntasks'],
@@ -805,8 +808,10 @@ def pvserver_process(**kwargs):
             print 'pvserver_process: Please only provide pvserver executable path and name without arguments'
             print 'e.g. mpiexec -n 1 /path_to_pvserver/bin/pvserver'
             return False  
-
-        _paraview_cmd = _paraview_cmd + ' -rc --client-host=localhost -sp='+str(paraview_remote_port)
+        if 'vizstack' in kwargs:
+            _paraview_cmd = _paraview_cmd + ' -c localhost ' + ' -p ' +  str(paraview_remote_port) 
+        else:
+            _paraview_cmd = _paraview_cmd + ' -rc --client-host=localhost -sp='+str(paraview_remote_port)
               
         if _paraview_cmd != None:
             env.use_ssh_config = True
