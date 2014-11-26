@@ -674,7 +674,10 @@ def pvcluster(remote_dir,paraview_home,paraview_args,paraview_port,paraview_remo
                 cmd_line += ' --jobqueue ' + job_dict['job_queue'] 
                 cmd_line += ' --ntasks ' + job_dict['job_ntasks']
                 cmd_line += ' --taskpernode ' + job_dict['job_ntaskpernode']
-                cmd_line += ' --script mycluster-paraview.bsh'
+                if 'vizstack' in paraview_args:
+                    cmd_line += ' --script mycluster-viz-paraview.bsh'
+                else:
+                    cmd_line += ' --script mycluster-paraview.bsh'
                 cmd_line += ' --project ' + job_dict['job_project']
                 run(cmd_line)
                 run('chmod u+rx pvserver.job')
