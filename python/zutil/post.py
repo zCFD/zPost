@@ -558,9 +558,9 @@ def get_csv_data(filename,header=False,remote=False,delim=' '):
     else:
         import pandas as pd
         if not header:
-            data = pd.read_csv(filename,sep=' ',header=None)
+            data = pd.read_csv(filename,sep=delim,header=None)
         else:
-            data = pd.read_csv(filename,sep=' ')
+            data = pd.read_csv(filename,sep=delim)
           
     return data
     
