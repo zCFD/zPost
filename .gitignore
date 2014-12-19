@@ -101,3 +101,5 @@ ipynb/Hyper_Flux/2nd_High_Lift_Prediction_Workshop/.ipynb_checkpoints/Untitled1-
 ipynb/NACA0021/.ipynb_checkpoints/
 
 ipynb/3D_CAVITY/.ipynb_checkpoints/cavity-Re=3200-checkpoint.ipynb
+
+*.sublime-workspace
