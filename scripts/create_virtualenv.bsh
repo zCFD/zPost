@@ -28,7 +28,7 @@ if [ -d "zpost-py27" ]; then
 fi
 
 echo "Creating virtual environment"
-virtualenv zpost-py27
+virtualenv --python=`which python` zpost-py27
 
 echo "Activating virtual environment"
 source zpost-py27/bin/activate
