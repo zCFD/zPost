@@ -1,6 +1,9 @@
 #!/bin/bash
 
-echo "zPost IPython installer"
+# Terminate script on first error
+set -e
+
+echo "zPost Jupyter/IPython installer"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -17,8 +20,8 @@ if [ $PYTHON_VER -ne 7 ]; then
 fi
 
 echo "Checking for virtualenv"
-VIRTUAL_ENV=`which virtualenv`
-if [ ! -n $VIRTUAL_ENV ]; then
+VIRTUAL_ENV=`type -p virtualenv || true`
+if [ ! -f $VIRTUAL_ENV ]; then
 	echo "ERROR: virtualenv not found"
 	exit
 fi

@@ -9,3 +9,5 @@ jinja2
 mpld3
 fabric
 pandas
+jsonschema
+terminado
