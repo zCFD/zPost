@@ -10,13 +10,13 @@ Note ParaView needs to use the same version of python
 
 In the scripts folder run 
 
-> create_virtualenv.bsh
+> ./create_virtualenv.bsh
 
 This will install all the required python packages in zPost/zpost-py27
 
 To run the ipython notebook server
 
-> start_notebook
+> ./start_notebook
 
 If you want to run a custom version of Paraview please set the PARAVIEW_HOME variable in your shell before starting the notebook server
 
