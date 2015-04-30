@@ -649,6 +649,15 @@ sh = logging.StreamHandler()
 sh.setLevel(logging.DEBUG)
 log.addHandler(sh)
 
+import sys
+import multiprocessing as mp
+from multiprocessing import Process
+process_id = None
+use_multiprocess = True
+logger = mp.get_logger()
+logger.addHandler(logging.StreamHandler(sys.stdout))
+logger.setLevel(mp.SUBDEBUG)
+
 def pvserver(remote_dir,paraview_cmd,paraview_port,paraview_remote_port):
     
     with show('debug'), remote_tunnel(int(paraview_remote_port),local_port=int(paraview_port)), cd(remote_dir):
@@ -718,24 +727,41 @@ def pvserver_start(remote_host,remote_dir,paraview_cmd):
         env.use_ssh_config = True
         execute(pvserver,remote_dir,paraview_cmd,hosts=[remote_host])    
 
-from multiprocessing import Process
-process_id = None
-use_multiprocess = True
+
+
+def f():
+    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,paraview_home,paraview_port,paraview_remote_port
+    
+    print 'Starting pvserver process'
+
+def test_connect(**kwargs):
+    logger = mp.get_logger()
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger.setLevel(mp.SUBDEBUG)   
+    process_id = mp.Process(target=f)
+    process_id.start()
+    process_id.join()
+
 
 def pvserver_connect(**kwargs):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,process_id,paraview_port,paraview_remote_port
-    
+    global process_id
+
     paraview_port = '11111'
     if 'paraview_port' in kwargs:
         paraview_port = kwargs['paraview_port' ]
 
     if not use_multiprocess:
         pvserver_process(**kwargs)        
-    else:    
-        process_id = Process(target=pvserver_process, kwargs=kwargs)
-        process_id.start()
+    else:
+        print 'Starting pvserver connect'
+        logger = mp.get_logger()
+        logger.addHandler(logging.StreamHandler(sys.stdout))
+        logger.setLevel(mp.SUBDEBUG)   
+        process_id = mp.Process(target=pvserver_process, kwargs=kwargs)
+        process_id.start()    
     
-    time.sleep(3)
+    #time.sleep(6)
 
     ReverseConnect(paraview_port)
 
@@ -747,6 +773,8 @@ def pvserver_process(**kwargs):
         
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,paraview_home,paraview_port,paraview_remote_port
     
+    print 'Starting pvserver process'
+
     _remote_dir = data_dir
     if 'data_dir' in kwargs:
         _remote_dir = kwargs['data_dir']
@@ -773,6 +801,7 @@ def pvserver_process(**kwargs):
         paraview_remote_port = kwargs['paraview_remote_port' ]
     else:
         # Attempt to find an unused remote port
+        print 'Attempting to find unused port'
         for p in range(12000,13000):
             try:
                 env.use_ssh_config = True
