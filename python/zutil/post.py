@@ -27,70 +27,77 @@ from zutil import mag
 import math
 import time
 
-def sum_and_zone_filter_array(input,array_name,ignore_zone,filter=None):
-    sum = [0.0,0.0,0.0]
+
+def sum_and_zone_filter_array(input, array_name, ignore_zone, filter=None):
+    sum = [0.0, 0.0, 0.0]
     p = input.GetCellData().GetArray(array_name)
     z = input.GetCellData().GetArray("zone")
     numCells = input.GetNumberOfCells()
     for x in range(numCells):
         if len(ignore_zone) == 0:
             v = p.GetTuple(x)
-            for i in range(0,3):
-                sum[i] += v[i]                        
+            for i in range(0, 3):
+                sum[i] += v[i]
         else:
             zone = z.GetValue(x)
             if zone not in ignore_zone:
                 v = p.GetTuple(x)
-                if filter == None or filter.test(input,x):
-                    #print 'Zone: %i'%(zone)
-                    for i in range(0,3):
-                        sum[i] += v[i]                        
+                if filter is None or filter.test(input, x):
+                    # print 'Zone: %i'%(zone)
+                    for i in range(0, 3):
+                        sum[i] += v[i]
     return sum
 
-def sum_and_zone_filter(input,array_name,ignore_zone,filter=None):
-    sum = [0.0,0.0,0.0]
+
+def sum_and_zone_filter(input, array_name, ignore_zone, filter=None):
+    sum = [0.0, 0.0, 0.0]
     if input.IsA("vtkMultiBlockDataSet"):
         iter = input.NewIterator()
         iter.UnRegister(None)
         iter.InitTraversal()
         while not iter.IsDoneWithTraversal():
             cur_input = iter.GetCurrentDataObject()
-            v = sum_and_zone_filter_array(cur_input,array_name,ignore_zone,filter)
-            for i in range(0,3):
-                sum[i] += v[i]                        
-            iter.GoToNextItem();
+            v = sum_and_zone_filter_array(cur_input, array_name,
+                                          ignore_zone, filter)
+            for i in range(0, 3):
+                sum[i] += v[i]
+            iter.GoToNextItem()
     else:
-        sum = sum_and_zone_filter_array(input,array_name,ignore_zone,filter)
-        
+        sum = sum_and_zone_filter_array(input, array_name, ignore_zone, filter)
+
     return sum
 
+
 class GeomFilterLT:
-    def __init__(self,val,idx):
+    def __init__(self, val, idx):
         #
         self.val = val
         self.idx = idx
-        
-    def test(self,input,x):
+
+    def test(self, input, x):
         centre = input.GetCellData().GetArray("centre").GetTuple(x)
         if centre[self.idx] < self.val:
             return True
         else:
             return False
 
+
 class GeomFilterGT:
-    def __init__(self,val,idx):
+    def __init__(self, val, idx):
         #
         self.val = val
         self.idx = idx
-        
-    def test(self,input,x):
+
+    def test(self, input, x):
         centre = input.GetCellData().GetArray("centre").GetTuple(x)
         if centre[self.idx] >= self.val:
             return True
         else:
             return False
 
-def calc_force_from_file(file_name,ignore_zone,half_model=False,filter=None,**kwargs):
+
+def calc_force_from_file(file_name, ignore_zone, half_model=False,
+                         filter=None, **kwargs):
     """ Calculates the pressure and friction force
 
     This function requires that the VTK file contains three cell data arrays
@@ -102,46 +109,53 @@ def calc_force_from_file(file_name,ignore_zone,half_model=False,filter=None,**kw
 
     Kwargs:
         half_nodel (bool): Does the data represent only half of the model
-        filter (function):  
+        filter (function):
 
     Returns:
         float, float. pressure force and friction force
     """
-    wall = PVDReader( FileName=file_name)
+    wall = PVDReader(FileName=file_name)
     wall.UpdatePipeline()
-    
-    return calc_force(wall,ignore_zone,half_model,filter,kwargs)
-    
-def calc_force_wall(file_root,ignore_zone,half_model=False,filter=None,**kwargs):
-    
-    wall = PVDReader( FileName=file_root+'_wall.pvd' )
-    wall.UpdatePipeline()
-    
-    return calc_force(wall,ignore_zone,half_model,filter,**kwargs)
 
-def calc_force(surface_data,ignore_zone,half_model=False,filter=None,**kwargs):
-    
+    return calc_force(wall, ignore_zone, half_model, filter, kwargs)
+
+
+def calc_force_wall(file_root, ignore_zone, half_model=False,
+                    filter=None, **kwargs):
+
+    wall = PVDReader(FileName=file_root+'_wall.pvd')
+    wall.UpdatePipeline()
+
+    return calc_force(wall, ignore_zone, half_model, filter, **kwargs)
+
+
+def calc_force(surface_data, ignore_zone, half_model=False,
+               filter=None, **kwargs):
+
     alpha = 0.0
     if 'alpha' in kwargs:
-        alpha = kwargs['alpha']        
+        alpha = kwargs['alpha']
     beta = 0.0
     if 'beta' in kwargs:
         beta = kwargs['beta']
-            
+
     sum_client = servermanager.Fetch(surface_data)
-    
-    pforce = sum_and_zone_filter(sum_client,"pressureforce",ignore_zone,filter)
-    fforce = sum_and_zone_filter(sum_client,"frictionforce",ignore_zone,filter)
-    
-    pforce = rotate_vector(pforce,alpha,beta)
-    fforce = rotate_vector(fforce,alpha,beta)
+
+    pforce = sum_and_zone_filter(sum_client, "pressureforce",
+                                 ignore_zone, filter)
+    fforce = sum_and_zone_filter(sum_client, "frictionforce",
+                                 ignore_zone, filter)
+
+    pforce = rotate_vector(pforce, alpha, beta)
+    fforce = rotate_vector(fforce, alpha, beta)
 
     if half_model:
-        for i in range(0,3):
+        for i in range(0, 3):
             pforce[i] *= 2.0
             fforce[i] *= 2.0
-            
+
     return pforce, fforce
+
 
 def get_span(wall):
     """ Returns the min and max y ordinate
@@ -153,7 +167,7 @@ def get_span(wall):
         (float,float). Min y, Max y
     """
     Calculator1 = Calculator(Input=wall)
-    
+
     Calculator1.AttributeMode = 'Point Data'
     Calculator1.Function = 'coords.jHat'
     Calculator1.ResultArrayName = 'ypos'
@@ -162,27 +176,27 @@ def get_span(wall):
     ymin = MinMax(Input=Calculator1)
     ymin.Operation = "MIN"
     ymin.UpdatePipeline()
-    
+
     ymin_client = servermanager.Fetch(ymin)
-    
+
     min_pos = ymin_client.GetPointData().GetArray("ypos").GetValue(0)
-    
+
     ymax = MinMax(Input=Calculator1)
     ymax.Operation = "MAX"
     ymax.UpdatePipeline()
-    
+
     ymax_client = servermanager.Fetch(ymax)
-    
-    max_pos  = ymax_client.GetPointData().GetArray("ypos").GetValue(0)
 
-    Delete(ymin);
-    Delete(ymax);    
-    Delete(Calculator1);
-    
-    return [min_pos,max_pos]
+    max_pos = ymax_client.GetPointData().GetArray("ypos").GetValue(0)
+
+    Delete(ymin)
+    Delete(ymax)
+    Delete(Calculator1)
+
+    return [min_pos, max_pos]
 
 
-def get_chord(slice,rotate_geometry=[0.0,0.0,0.0]):
+def get_chord(slice, rotate_geometry=[0.0, 0.0, 0.0]):
     """ Returns the min and max x ordinate
 
     Args:
@@ -193,13 +207,13 @@ def get_chord(slice,rotate_geometry=[0.0,0.0,0.0]):
     """
 
     transform = Transform(Input=slice, Transform="Transform")
-    transform.Transform.Scale = [1.0,1.0,1.0]
-    transform.Transform.Translate = [0.0,0.0,0.0]
+    transform.Transform.Scale = [1.0, 1.0, 1.0]
+    transform.Transform.Translate = [0.0, 0.0, 0.0]
     transform.Transform.Rotate = rotate_geometry
     transform.UpdatePipeline()
 
     Calculator1 = Calculator(Input=transform)
-    
+
     Calculator1.AttributeMode = 'Point Data'
     Calculator1.Function = 'coords.iHat'
     Calculator1.ResultArrayName = 'xpos'
@@ -208,30 +222,31 @@ def get_chord(slice,rotate_geometry=[0.0,0.0,0.0]):
     xmin = MinMax(Input=Calculator1)
     xmin.Operation = "MIN"
     xmin.UpdatePipeline()
-    
+
     xmin_client = servermanager.Fetch(xmin)
-    
+
     min_pos = xmin_client.GetPointData().GetArray("xpos").GetValue(0)
-    
+
     xmax = MinMax(Input=Calculator1)
     xmax.Operation = "MAX"
     xmax.UpdatePipeline()
-    
-    xmax_client = servermanager.Fetch(xmax)
-    
-    max_pos  = xmax_client.GetPointData().GetArray("xpos").GetValue(0)
 
-    Delete(xmin);
-    Delete(xmax);    
-    Delete(Calculator1);
+    xmax_client = servermanager.Fetch(xmax)
+
+    max_pos = xmax_client.GetPointData().GetArray("xpos").GetValue(0)
+
+    Delete(xmin)
+    Delete(xmax)
+    Delete(Calculator1)
     Delete(transform)
-    
-    return [min_pos,max_pos]
+
+    return [min_pos, max_pos]
+
 
 def get_chord_spanwise(slice):
-    
+
     Calculator1 = Calculator(Input=slice)
-    
+
     Calculator1.AttributeMode = 'Point Data'
     Calculator1.Function = 'coords.jHat'
     Calculator1.ResultArrayName = 'ypos'
@@ -240,25 +255,24 @@ def get_chord_spanwise(slice):
     ymin = MinMax(Input=Calculator1)
     ymin.Operation = "MIN"
     ymin.UpdatePipeline()
-    
+
     ymin_client = servermanager.Fetch(ymin)
-    
+
     min_pos = ymin_client.GetPointData().GetArray("ypos").GetValue(0)
-    
+
     ymax = MinMax(Input=Calculator1)
     ymax.Operation = "MAX"
     ymax.UpdatePipeline()
-    
+
     ymax_client = servermanager.Fetch(ymax)
-    
-    max_pos  = ymax_client.GetPointData().GetArray("ypos").GetValue(0)
 
-    Delete(ymin);
-    Delete(ymax);    
-    Delete(Calculator1);
-    
-    return [min_pos,max_pos]
+    max_pos = ymax_client.GetPointData().GetArray("ypos").GetValue(0)
 
+    Delete(ymin)
+    Delete(ymax)
+    Delete(Calculator1)
+
+    return [min_pos, max_pos]
 
 
 def residual_plot(file):
@@ -271,25 +285,26 @@ def residual_plot(file):
     l2norm.DetectNumericColumns = 1
     l2norm.FieldDelimiterCharacters = ' '
     l2norm.UpdatePipeline()
-    
-    l2norm_client = servermanager.Fetch(l2norm) 
-    
+
+    l2norm_client = servermanager.Fetch(l2norm)
+
     table = Table(l2norm_client)
-            
+
     data = table.RowData
-    
-    names =  data.keys()
-    
+
+    names = data.keys()
+
     num_var = len(names)-2
     num_rows = ((num_var-1)/4)+1
 
-    fig = pl.figure(figsize=(40, 10*num_rows),dpi=100, facecolor='w', edgecolor='k')
+    fig = pl.figure(figsize=(40, 10*num_rows), dpi=100,
+                    facecolor='w', edgecolor='k')
 
     fig.suptitle(file, fontsize=40, fontweight='bold')
-    
-    for i in range(1,num_var+1):
+
+    for i in range(1, num_var+1):
         var_name = names[i]
-        ax = fig.add_subplot(num_rows,4,i)
+        ax = fig.add_subplot(num_rows, 4, i)
         if 'rho' in var_name:
             ax.set_yscale('log')
             ax.set_ylabel('l2norm '+var_name, multialignment='center')
@@ -298,30 +313,33 @@ def residual_plot(file):
 
         ax.grid(True)
         ax.set_xlabel('Cycles')
-    
+
         ax.plot(data[names[0]], data[names[i]], color='r', label=names[i])
 
-def for_each(surface,func,**kwargs):
+
+def for_each(surface, func, **kwargs):
     if surface.IsA("vtkMultiBlockDataSet"):
         iter = surface.NewIterator()
         iter.UnRegister(None)
         iter.InitTraversal()
         while not iter.IsDoneWithTraversal():
             cur_input = iter.GetCurrentDataObject()
-            numCells = cur_input.GetNumberOfCells()
-            numPts   = cur_input.GetNumberOfPoints()
+            # numCells = cur_input.GetNumberOfCells()
+            numPts = cur_input.GetNumberOfPoints()
             if numPts > 0:
                 calc = DataSet(cur_input)
                 pts = PointSet(cur_input)
-                func(calc,pts,**kwargs)
-            iter.GoToNextItem();    
+                func(calc, pts, **kwargs)
+            iter.GoToNextItem()
     else:
         calc = DataSet(surface)
         pts = PointSet(surface)
-        func(calc,pts,**kwargs)    
-    
-def cp_profile_wall_from_file(file_root,slice_normal,slice_origin,**kwargs):
-    
+        func(calc, pts, **kwargs)
+
+
+def cp_profile_wall_from_file(file_root, slice_normal,
+                              slice_origin, **kwargs):
+
     wall = PVDReader( FileName=file_root+'_wall.pvd' )
     clean = CleantoGrid(Input=wall)
     clean.UpdatePipeline()
@@ -433,7 +451,7 @@ def cp_profile_span(surface,slice_normal,slice_origin,**kwargs):
 
     alpha = 0.0
     if 'alpha' in kwargs:
-        alpha = kwargs['alpha']        
+        alpha = kwargs['alpha']
     beta = 0.0
     if 'beta' in kwargs:
         beta = kwargs['beta']
@@ -465,7 +483,7 @@ def cp_profile_span(surface,slice_normal,slice_origin,**kwargs):
     sum.Operation = "SUM"
     sum.UpdatePipeline()
 
-    sum_client = servermanager.Fetch(sum)    
+    sum_client = servermanager.Fetch(sum)
     pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
     fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
 
@@ -485,7 +503,7 @@ def cf_profile(surface,slice_normal,slice_origin,**kwargs):
 
     alpha = 0.0
     if 'alpha' in kwargs:
-        alpha = kwargs['alpha']        
+        alpha = kwargs['alpha']
     beta = 0.0
     if 'beta' in kwargs:
         beta = kwargs['beta']
@@ -611,7 +629,7 @@ def screenshot(wall):
     view.ViewSize = [200, 300] #[width, height]
      
     dp = GetDisplayProperties()
-     
+ 
     #set point color
     dp.AmbientColor = [1, 0, 0] #red
      
