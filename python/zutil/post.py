@@ -717,10 +717,12 @@ def cat_status_file(remote_dir,case_name):
             cmd = 'cat '+case_name+'_status.txt'
             import StringIO
             contents = StringIO.StringIO()
-            get(case_name+'_status.txt', contents)
-            # operate on 'contents' like a file object here, e.g. 'print
-            return contents.getvalue()
-    
+            result = get(case_name+'_status.txt', contents)
+            if result.succeeded:
+                # operate on 'contents' like a file object here, e.g. 'print
+                return contents.getvalue()
+            else:
+                return None
 
 def pvserver_start(remote_host,remote_dir,paraview_cmd):
     if paraview_cmd != None:
@@ -876,9 +878,14 @@ def get_status_dict(case_name,**kwargs):#remote_host,remote_dir,case_name):
     env.use_ssh_config = True
     env.host_string = _remote_host
     status_file_str=cat_status_file(_remote_dir,case_name)
-    #print status_file_str
-    return json.loads(status_file_str)
-    
+
+    if status_file_str != None:
+        #print status_file_str
+        return json.loads(status_file_str)
+    else:
+        print 'WARNING: '+case_name+'_status.txt file not found'
+        return None
+        
 def get_num_procs(case_name,**kwargs):#remote_host,remote_dir,case_name):
     status = get_status_dict(case_name,**kwargs)
     if 'num processor' in status:
