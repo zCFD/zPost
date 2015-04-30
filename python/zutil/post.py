@@ -654,9 +654,9 @@ import multiprocessing as mp
 from multiprocessing import Process
 process_id = None
 use_multiprocess = True
-logger = mp.get_logger()
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.setLevel(mp.SUBDEBUG)
+#logger = mp.get_logger()
+#logger.addHandler(logging.StreamHandler(sys.stdout))
+#logger.setLevel(mp.SUBDEBUG)
 
 def pvserver(remote_dir,paraview_cmd,paraview_port,paraview_remote_port):
     
@@ -728,24 +728,19 @@ def pvserver_start(remote_host,remote_dir,paraview_cmd):
         execute(pvserver,remote_dir,paraview_cmd,hosts=[remote_host])    
 
 
-
-def f():
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,paraview_home,paraview_port,paraview_remote_port
-    
-    print 'Starting pvserver process'
-
-def test_connect(**kwargs):
-    logger = mp.get_logger()
-    logger.addHandler(logging.StreamHandler(sys.stdout))
-    logger.setLevel(mp.SUBDEBUG)   
-    process_id = mp.Process(target=f)
-    process_id.start()
-    process_id.join()
-
-
 def pvserver_connect(**kwargs):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,process_id,paraview_port,paraview_remote_port
     global process_id
+
+    _paraview_cmd = paraview_cmd
+    if 'paraview_cmd' in kwargs:
+        _paraview_cmd = kwargs['paraview_cmd' ]
+
+    if '-sp' in _paraview_cmd or '--client-host' in _paraview_cmd:
+        print 'pvserver_process: Please only provide pvserver executable path and name without arguments'
+        print 'e.g. mpiexec -n 1 /path_to_pvserver/bin/pvserver'
+        return False  
+
 
     paraview_port = '11111'
     if 'paraview_port' in kwargs:
@@ -755,9 +750,9 @@ def pvserver_connect(**kwargs):
         pvserver_process(**kwargs)        
     else:
         print 'Starting pvserver connect'
-        logger = mp.get_logger()
-        logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(mp.SUBDEBUG)   
+        #logger = mp.get_logger()
+        #logger.addHandler(logging.StreamHandler(sys.stdout))
+        #logger.setLevel(mp.SUBDEBUG)   
         process_id = mp.Process(target=pvserver_process, kwargs=kwargs)
         process_id.start()    
     
