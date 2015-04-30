@@ -33,7 +33,7 @@ The launcher scripts are in scripts/pvserver_launcher.bsh and scripts/pvcluster_
 This relies on passwordless ssh key based authentication on the remote server so ensure this works correctly before using this facility.
 
 Server Dependencies
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 The server environment requires the MyCluster application to the installed and configured correctly for the cluster capability to operate.
 The server submit node also requires that the ssh server is configured to act as a gateway so that the cluster nodes can connect to the ParaView client. 
