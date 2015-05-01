@@ -656,7 +656,7 @@ def sum_array(input,array_name):
         for i in range(0,3):
             sum[i] += v[i]                        
     return sum
-  
+
 from fabric.api import env, run, cd, get, hide, settings, remote_tunnel, show, shell_env
 from fabric.tasks import execute
 
@@ -669,36 +669,41 @@ log.addHandler(sh)
 
 import sys
 import multiprocessing as mp
-from multiprocessing import Process
+from multiprocessing import Process, Value
 process_id = None
 use_multiprocess = True
-#logger = mp.get_logger()
-#logger.addHandler(logging.StreamHandler(sys.stdout))
-#logger.setLevel(mp.SUBDEBUG)
+# Uncomment for output logging
+# logger = mp.get_logger()
+# logger.addHandler(logging.StreamHandler(sys.stdout))
+# logger.setLevel(mp.SUBDEBUG)
 
-def pvserver(remote_dir,paraview_cmd,paraview_port,paraview_remote_port):
-    
-    with show('debug'), remote_tunnel(int(paraview_remote_port),local_port=int(paraview_port)), cd(remote_dir):
-        #with cd(remote_dir):
+
+def pvserver(remote_dir, paraview_cmd, paraview_port, paraview_remote_port):
+
+    with show('debug'), remote_tunnel(int(paraview_remote_port),
+                                      local_port=int(paraview_port)), cd(remote_dir):
+        # with cd(remote_dir):
         if not use_multiprocess:
-            run('sleep 2;'+paraview_cmd+'</dev/null &>/dev/null&',pty=False)
+            run('sleep 2;'+paraview_cmd+'</dev/null &>/dev/null&', pty=False)
         else:
-            #run('sleep 2;'+paraview_cmd+'&>/dev/null',pty=False)
-            run('sleep 2;'+paraview_cmd)#,pty=False)
-        #run(paraview_cmd+'</dev/null &>/dev/null',pty=False)
-        #run('screen -d -m "yes"')
-    #ssh asrc2 "(ls</dev/null &>/dev/null&) 2>&1; true" 2>/dev/null || echo SSH connection or remote command failed - either of them returned non-zero exit code $?
+            #    # run('sleep 2;'+paraview_cmd+'&>/dev/null',pty=False)
+            run('sleep 2;'+paraview_cmd)  # , pty=False)
+        # run(paraview_cmd+'</dev/null &>/dev/null',pty=False)
+        # run('screen -d -m "yes"')
+    # ssh asrc2 "(ls</dev/null &>/dev/null&) 2>&1; true" 2>/dev/null || echo SSH connection or remote command failed - either of them returned non-zero exit code $?
 
-def pvcluster(remote_dir,paraview_home,paraview_args,paraview_port,paraview_remote_port,job_dict):
-    
-    with show('debug'), remote_tunnel(int(paraview_remote_port),local_port=int(paraview_port)):
-        with shell_env(PARAVIEW_HOME=paraview_home,PARAVIEW_ARGS=paraview_args):
+
+def pvcluster(remote_dir, paraview_home, paraview_args,
+              paraview_port, paraview_remote_port, job_dict):
+
+    with show('debug'), remote_tunnel(int(paraview_remote_port), local_port=int(paraview_port)):
+        with shell_env(PARAVIEW_HOME=paraview_home, PARAVIEW_ARGS=paraview_args):
             run('echo $PARAVIEW_HOME')
             run('echo $PARAVIEW_ARGS')
             run('mkdir -p '+remote_dir)
             with cd(remote_dir):
-                cmd_line  = 'mycluster --create pvserver.job --jobname=pvserver'
-                cmd_line += ' --jobqueue ' + job_dict['job_queue'] 
+                cmd_line = 'mycluster --create pvserver.job --jobname=pvserver'
+                cmd_line += ' --jobqueue ' + job_dict['job_queue']
                 cmd_line += ' --ntasks ' + job_dict['job_ntasks']
                 cmd_line += ' --taskpernode ' + job_dict['job_ntaskpernode']
                 if 'vizstack' in paraview_args:
@@ -709,30 +714,34 @@ def pvcluster(remote_dir,paraview_home,paraview_args,paraview_port,paraview_remo
                 run(cmd_line)
                 run('chmod u+rx pvserver.job')
                 run('mycluster --immediate --submit pvserver.job')
-            
-def port_test(rport,lport):
+
+
+def port_test(rport, lport):
     # Run a test
-    with hide('everything'), remote_tunnel(int(rport),local_port=int(lport)):
+    with hide('everything'), remote_tunnel(int(rport), local_port=int(lport)):
         run('cd')
+
 
 def get_case_file():
     with cd(remote_dir):
-        get(case_name+'.py','%(path)s')
-        
-def cat_case_file(remote_dir,case_name):
+        get(case_name+'.py', '%(path)s')
+
+
+def cat_case_file(remote_dir, case_name):
     with cd(remote_dir):
-        with hide('output','running','warnings'), settings(warn_only=True):
-            cmd = 'cat '+case_name+'.py'
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            # cmd = 'cat '+case_name+'.py'
             import StringIO
             contents = StringIO.StringIO()
             get(case_name+'.py', contents)
             # operate on 'contents' like a file object here, e.g. 'print
             return contents.getvalue()
 
-def cat_status_file(remote_dir,case_name):
+
+def cat_status_file(remote_dir, case_name):
     with cd(remote_dir):
-        with hide('output','running','warnings'), settings(warn_only=True):
-            cmd = 'cat '+case_name+'_status.txt'
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            # cmd = 'cat '+case_name+'_status.txt'
             import StringIO
             contents = StringIO.StringIO()
             result = get(case_name+'_status.txt', contents)
@@ -742,52 +751,167 @@ def cat_status_file(remote_dir,case_name):
             else:
                 return None
 
-def pvserver_start(remote_host,remote_dir,paraview_cmd):
-    if paraview_cmd != None:
+
+def run_uname(with_tunnel):
+
+    with hide('everything'):
+        run('uname -a')
+
+
+def test_ssh(status, **kwargs):
+    global data_host
+    _remote_host = data_host
+    if 'data_host' in kwargs:
+        _remote_host = kwargs['data_host']
+    try:
         env.use_ssh_config = True
-        execute(pvserver,remote_dir,paraview_cmd,hosts=[remote_host])    
+        execute(run_uname, False, hosts=[_remote_host])
+    except:
+        status.value = 0
+        return False
+    return True
+
+
+def test_ssh_mp(**kwargs):
+
+    # print 'Starting test ssh'
+    status = Value('i', 1)
+    process_id = mp.Process(target=test_ssh, args=(status,), kwargs=kwargs)
+    process_id.start()
+    process_id.join()
+    if status.value == 0:
+        return False
+
+    return True
+
+
+def test_remote_tunnel(**kwargs):
+    global data_host
+
+    _remote_host = data_host
+    if 'data_host' in kwargs:
+        _remote_host = kwargs['data_host']
+
+    try:
+        env.use_ssh_config = True
+        execute(run_uname, True, hosts=[_remote_host])
+    except:
+        return False
+
+    return True
+
+
+def get_remote_port(**kwargs):
+
+    global data_host, paraview_remote_port, paraview_port
+
+    _remote_host = data_host
+    if 'data_host' in kwargs:
+        _remote_host = kwargs['data_host']
+
+    paraview_port = '11111'
+    if 'paraview_port' in kwargs:
+        paraview_port = kwargs['paraview_port']
+
+    paraview_remote_port = '11113'
+    if 'paraview_remote_port' in kwargs:
+        paraview_remote_port = kwargs['paraview_remote_port']
+    else:
+        # Attempt to find an unused remote port
+        print 'Attempting to find unused port'
+        for p in range(12000, 13000):
+            tp = Value('i', p)
+
+            process_id = mp.Process(target=test_remote_port,
+                                    args=(port_test, tp,
+                                          paraview_port, _remote_host))
+            process_id.start()
+            process_id.join()
+            # print tp.value
+            if tp.value != 0:
+                break
+
+        print 'Selected Port: '+str(p)
+        paraview_remote_port = p
+
+
+def test_remote_port(port_test, port, paraview_port, remote_host):
+
+    try:
+        env.use_ssh_config = True
+        execute(port_test, port.value, paraview_port, hosts=[remote_host])
+        return True
+    except:
+        port.value = 0
+        return False
+
+
+def pvserver_start(remote_host, remote_dir, paraview_cmd):
+    if paraview_cmd is not None:
+        env.use_ssh_config = True
+        execute(pvserver, remote_dir, paraview_cmd, hosts=[remote_host])
 
 
 def pvserver_connect(**kwargs):
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,process_id,paraview_port,paraview_remote_port
+    """
+    Be careful when adding to this function fabric execute calls do not play
+    well with multiprocessing. Do not mix direct fabric execute call and
+    mp based fabric execute calls
+    """
+    global remote_data, data_dir, data_host, remote_server_auto
+    global paraview_cmd, process_id, paraview_port, paraview_remote_port
     global process_id
 
     _paraview_cmd = paraview_cmd
     if 'paraview_cmd' in kwargs:
-        _paraview_cmd = kwargs['paraview_cmd' ]
+        _paraview_cmd = kwargs['paraview_cmd']
 
     if '-sp' in _paraview_cmd or '--client-host' in _paraview_cmd:
-        print 'pvserver_process: Please only provide pvserver executable path and name without arguments'
+        print('pvserver_process: Please only provide pvserver'
+              'executable path and name without arguments')
         print 'e.g. mpiexec -n 1 /path_to_pvserver/bin/pvserver'
-        return False  
+        return False
 
+    # Add Check for passwordless ssh
+    print 'Testing passwordless ssh access'
+    if not test_ssh_mp(**kwargs):
+        print 'ERROR: Passwordless ssh access to data host failed'
+        return False
+    print '-> Passed'
+
+    # Add check for paraview version
+
+    # Find free remote port
+    get_remote_port(**kwargs)
 
     paraview_port = '11111'
     if 'paraview_port' in kwargs:
-        paraview_port = kwargs['paraview_port' ]
+        paraview_port = kwargs['paraview_port']
 
     if not use_multiprocess:
-        pvserver_process(**kwargs)        
+        pvserver_process(**kwargs)
     else:
         print 'Starting pvserver connect'
-        #logger = mp.get_logger()
-        #logger.addHandler(logging.StreamHandler(sys.stdout))
-        #logger.setLevel(mp.SUBDEBUG)   
         process_id = mp.Process(target=pvserver_process, kwargs=kwargs)
-        process_id.start()    
-    
-    #time.sleep(6)
+        process_id.start()
+        # process_id.join()
+
+    # time.sleep(6)
 
     ReverseConnect(paraview_port)
+
+    return True
 
 
 def pvcluster_process(**kwargs):
     pvserver_process(**kwargs)
-    
+
+
 def pvserver_process(**kwargs):
-        
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd,paraview_home,paraview_port,paraview_remote_port
-    
+
+    global remote_data, data_dir, data_host, remote_server_auto
+    global paraview_cmd, paraview_home, paraview_port, paraview_remote_port
+
     print 'Starting pvserver process'
 
     _remote_dir = data_dir
@@ -795,37 +919,41 @@ def pvserver_process(**kwargs):
         _remote_dir = kwargs['data_dir']
     _paraview_cmd = paraview_cmd
     if 'paraview_cmd' in kwargs:
-        _paraview_cmd = kwargs['paraview_cmd' ]
+        _paraview_cmd = kwargs['paraview_cmd']
     _paraview_home = paraview_home
     if 'paraview_home' in kwargs:
-        _paraview_home = kwargs['paraview_home' ]
+        _paraview_home = kwargs['paraview_home']
     paraview_port = '11111'
     if 'paraview_port' in kwargs:
-        paraview_port = kwargs['paraview_port' ]
+        paraview_port = kwargs['paraview_port']
 
+    """
     _job_ntasks = 1
     if 'job_ntasks' in kwargs:
-        _job_ntasks = kwargs['job_ntasks' ]
+        _job_ntasks = kwargs['job_ntasks']
+    """
 
     _remote_host = data_host
     if 'data_host' in kwargs:
-        _remote_host = kwargs['data_host' ]
+        _remote_host = kwargs['data_host']
 
-    paraview_remote_port = '11113'
-    if 'paraview_remote_port' in kwargs:
-        paraview_remote_port = kwargs['paraview_remote_port' ]
-    else:
-        # Attempt to find an unused remote port
-        print 'Attempting to find unused port'
-        for p in range(12000,13000):
-            try:
-                env.use_ssh_config = True
-                execute(port_test,p,paraview_port,hosts=[_remote_host])
-                break
-            except:
-                pass
-        print 'Selected Port: '+str(p)
-        paraview_remote_port = p      
+    # This global variable may have already been set so check
+    if 'paraview_remote_port' not in globals():
+        paraview_remote_port = '11113'
+        if 'paraview_remote_port' in kwargs:
+            paraview_remote_port = kwargs['paraview_remote_port']
+        else:
+            # Attempt to find an unused remote port
+            print 'Attempting to find unused port'
+            for p in range(12000, 13000):
+                try:
+                    env.use_ssh_config = True
+                    execute(port_test, p, paraview_port, hosts=[_remote_host])
+                    break
+                except:
+                    pass
+            print 'Selected Port: '+str(p)
+            paraview_remote_port = p
 
     if 'job_queue' in kwargs:
         # Submit job
@@ -840,50 +968,55 @@ def pvserver_process(**kwargs):
         print paraview_args
 
         job_dict = {
-            'job_queue' : kwargs['job_queue'], 
-            'job_ntasks' : kwargs['job_ntasks'],
-            'job_ntaskpernode' : kwargs['job_ntaskpernode'],
-            'job_project' : kwargs['job_project'], 
+            'job_queue': kwargs['job_queue'],
+            'job_ntasks': kwargs['job_ntasks'],
+            'job_ntaskpernode': kwargs['job_ntaskpernode'],
+            'job_project': kwargs['job_project'],
         }
-        if _paraview_home != None:
+        if _paraview_home is not None:
             env.use_ssh_config = True
-            execute(pvcluster,_remote_dir,_paraview_home,paraview_args,
-                paraview_port,paraview_remote_port,job_dict,hosts=[_remote_host])    
+            execute(pvcluster, _remote_dir, _paraview_home, paraview_args,
+                    paraview_port, paraview_remote_port,
+                    job_dict, hosts=[_remote_host])
     else:
         # Run Paraview
         if '-sp' in _paraview_cmd or '--client-host' in _paraview_cmd:
             print 'pvserver_process: Please only provide pvserver executable path and name without arguments'
             print 'e.g. mpiexec -n 1 /path_to_pvserver/bin/pvserver'
-            return False  
+            return False
         if 'vizstack' in kwargs:
-            _paraview_cmd = _paraview_cmd + ' -c localhost ' + ' -p ' +  str(paraview_remote_port) 
+            _paraview_cmd = _paraview_cmd + ' -c localhost ' + ' -p ' +  str(paraview_remote_port)
         else:
             _paraview_cmd = _paraview_cmd + ' -rc --client-host=localhost -sp='+str(paraview_remote_port)
-              
-        if _paraview_cmd != None:
+
+        if _paraview_cmd is not None:
             env.use_ssh_config = True
-            execute(pvserver,_remote_dir,_paraview_cmd,paraview_port,paraview_remote_port,hosts=[_remote_host])    
+            execute(pvserver, _remote_dir, _paraview_cmd, paraview_port,
+                    paraview_remote_port, hosts=[_remote_host])
+
 
 def pvserver_disconnect():
     Disconnect()
     if process_id:
         process_id.terminate()
-    
-def get_case_parameters(case_name,**kwargs):#remote_host,remote_dir,case_name):
+
+
+def get_case_parameters(case_name,**kwargs):  # remote_host,remote_dir,case_name):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
     _remote_dir = data_dir
     if 'data_dir' in kwargs:
         _remote_dir = kwargs['data_dir']
     _remote_host = data_host
     if 'data_host' in kwargs:
-        _remote_host = kwargs['data_host' ]
+        _remote_host = kwargs['data_host']
 
     env.use_ssh_config = True
     env.host_string = _remote_host
     case_file_str=cat_case_file(_remote_dir,case_name)
     exec case_file_str
     return parameters
-    
+
+
 def get_status_dict(case_name,**kwargs):#remote_host,remote_dir,case_name):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
     _remote_dir = data_dir
@@ -903,7 +1036,8 @@ def get_status_dict(case_name,**kwargs):#remote_host,remote_dir,case_name):
     else:
         print 'WARNING: '+case_name+'_status.txt file not found'
         return None
-        
+
+
 def get_num_procs(case_name,**kwargs):#remote_host,remote_dir,case_name):
     status = get_status_dict(case_name,**kwargs)
     if 'num processor' in status:
@@ -911,14 +1045,17 @@ def get_num_procs(case_name,**kwargs):#remote_host,remote_dir,case_name):
     else:
         return None
 
+
 def get_case_root(case_name,num_procs):
     return case_name+'_P'+num_procs+'_OUTPUT/'+case_name
+
 
 def get_case_report(case):
     return case+'_report.csv'
 
+
 def print_html_parameters(parameters):
-    
+
     reference = parameters['reference']
     material  = parameters['material']
     conditions = parameters[reference]
@@ -962,7 +1099,7 @@ def print_html_parameters(parameters):
                         'speed':speed,
                         'mach':mach,
                         })
-    
+
 import uuid
 import time
 from IPython.display import HTML, Javascript, display
