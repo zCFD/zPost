@@ -11,4 +11,4 @@ fabric
 pandas
 jsonschema
 terminado
-
+bokeh
