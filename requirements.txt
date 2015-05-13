@@ -12,3 +12,5 @@ pandas
 jsonschema
 terminado
 bokeh
+svgwrite
+
