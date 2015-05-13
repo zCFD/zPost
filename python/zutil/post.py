@@ -2,7 +2,7 @@
 .. moduleauthor:: Zenotech Ltd
 """
 from paraview.simple import *
-from paraview.vtk.util import numpy_support
+# from paraview.vtk.util import numpy_support
 try:
     from paraview.vtk.dataset_adapter import numpyTovtkDataArray
     from paraview.vtk.dataset_adapter import Table
@@ -24,7 +24,7 @@ import pylab as pl
 from zutil import rotate_vector
 import json
 from zutil import mag
-import math
+# import math
 import time
 
 
@@ -340,53 +340,52 @@ def for_each(surface, func, **kwargs):
 def cp_profile_wall_from_file(file_root, slice_normal,
                               slice_origin, **kwargs):
 
-    wall = PVDReader( FileName=file_root+'_wall.pvd' )
+    wall = PVDReader(FileName=file_root+'_wall.pvd')
     clean = CleantoGrid(Input=wall)
     clean.UpdatePipeline()
     merged = MergeBlocks(Input=clean)
     merged.UpdatePipeline()
-    return cp_profile(merged,slice_normal,slice_origin,**kwargs)
+    return cp_profile(merged, slice_normal, slice_origin, **kwargs)
 
-def cp_profile_wall_from_file_span(file_root,slice_normal,slice_origin,**kwargs):
-    
-    wall = PVDReader( FileName=file_root+'_wall.pvd' )
+
+def cp_profile_wall_from_file_span(file_root, slice_normal,
+                                   slice_origin, **kwargs):
+
+    wall = PVDReader(FileName=file_root+'_wall.pvd')
     clean = CleantoGrid(Input=wall)
     clean.UpdatePipeline()
     merged = MergeBlocks(Input=clean)
     merged.UpdatePipeline()
-    return cp_profile_span(merged,slice_normal,slice_origin,**kwargs)
+    return cp_profile_span(merged, slice_normal, slice_origin, **kwargs)
 
 
-
-
-def cp_profile(surface,slice_normal,slice_origin,**kwargs):
+def cp_profile(surface, slice_normal, slice_origin, **kwargs):
 
     alpha = 0.0
     if 'alpha' in kwargs:
-        alpha = kwargs['alpha']        
+        alpha = kwargs['alpha']
     beta = 0.0
     if 'beta' in kwargs:
         beta = kwargs['beta']
-        
+
     time_average = False
     if 'time_average' in kwargs:
         time_average = kwargs['time_average']
 
-    rotate_geometry = [0.0,0.0,0.0]
+    rotate_geometry = [0.0, 0.0, 0.0]
     if 'rotate_geometry' in kwargs:
         rotate_geometry = kwargs['rotate_geometry']
 
     point_data = CellDatatoPointData(Input=surface)
-    point_data.PassCellData = 1 
+    point_data.PassCellData = 1
 
-    
-    slice = Slice(Input=point_data, SliceType="Plane" )
-    
+    slice = Slice(Input=point_data, SliceType="Plane")
+
     slice.SliceType.Normal = slice_normal
     slice.SliceType.Origin = slice_origin
-    
+
     slice.UpdatePipeline()
-        
+
     if time_average:
         temporal = TemporalStatistics(Input=slice)
         temporal.ComputeMaximum = 0
@@ -395,37 +394,38 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
         temporal.UpdatePipeline()
         slice = temporal
 
-    offset = get_chord(slice,rotate_geometry)
-    
+    offset = get_chord(slice, rotate_geometry)
+
     transform = Transform(Input=slice, Transform="Transform")
-    transform.Transform.Scale = [1.0,1.0,1.0]
-    transform.Transform.Translate = [0.0,0.0,0.0]
+    transform.Transform.Scale = [1.0, 1.0, 1.0]
+    transform.Transform.Translate = [0.0, 0.0, 0.0]
     transform.Transform.Rotate = rotate_geometry
     transform.UpdatePipeline()
 
     chord_calc = Calculator(Input=transform)
-    
+
     chord_calc.AttributeMode = 'Point Data'
-    chord_calc.Function = '(coords.iHat - '+str(offset[0])+')/'+str(offset[1]-offset[0])
+    chord_calc.Function = ('(coords.iHat - ' + str(offset[0]) + ')/' +
+                           str(offset[1]-offset[0]))
     chord_calc.ResultArrayName = 'chord'
 
-
     # Attempt to calculate forces
-    pforce = [0.0,0.0,0.0]
-    fforce = [0.0,0.0,0.0]
+    pforce = [0.0, 0.0, 0.0]
+    fforce = [0.0, 0.0, 0.0]
 
     sum = MinMax(Input=slice)
     sum.Operation = "SUM"
     sum.UpdatePipeline()
 
-    sum_client = servermanager.Fetch(sum) 
-    if sum_client.GetCellData().GetArray("pressureforce") and sum_client.GetCellData().GetArray("frictionforce"):
-       
+    sum_client = servermanager.Fetch(sum)
+    if (sum_client.GetCellData().GetArray("pressureforce") and
+            sum_client.GetCellData().GetArray("frictionforce")):
+
         pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
         fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
 
-        pforce = rotate_vector(pforce,alpha,beta)
-        fforce = rotate_vector(fforce,alpha,beta)
+        pforce = rotate_vector(pforce, alpha, beta)
+        fforce = rotate_vector(fforce, alpha, beta)
         """
         # Add sectional force integration
         sorted_line = PlotOnSortedLines(Input=chord_calc)
@@ -441,13 +441,14 @@ def cp_profile(surface,slice_normal,slice_origin,**kwargs):
     if 'func' in kwargs:
         sorted_line = PlotOnSortedLines(Input=chord_calc)
         sorted_line.UpdatePipeline()
-        extract_client = servermanager.Fetch(sorted_line) 
-        for_each(extract_client,**kwargs)
-        
-    return {'pressure force':pforce,
-            'friction force':fforce}
+        extract_client = servermanager.Fetch(sorted_line)
+        for_each(extract_client, **kwargs)
 
-def cp_profile_span(surface,slice_normal,slice_origin,**kwargs):
+    return {'pressure force': pforce,
+            'friction force': fforce}
+
+
+def cp_profile_span(surface, slice_normal, slice_origin, **kwargs):
 
     alpha = 0.0
     if 'alpha' in kwargs:
@@ -455,28 +456,29 @@ def cp_profile_span(surface,slice_normal,slice_origin,**kwargs):
     beta = 0.0
     if 'beta' in kwargs:
         beta = kwargs['beta']
-        
+
     point_data = CellDatatoPointData(Input=surface)
-    point_data.PassCellData = 1 
-    clip = Clip(Input = point_data, ClipType = "Plane")
+    point_data.PassCellData = 1
+    clip = Clip(Input=point_data, ClipType="Plane")
     clip.ClipType.Normal = [0.0, 1.0, 0.0]
-    clip.ClipType.Origin = [0.0 , 0.0 , 0.0]
+    clip.ClipType.Origin = [0.0, 0.0, 0.0]
     clip.UpdatePipeline()
 
-    slice = Slice(Input=clip, SliceType="Plane" )
-    
+    slice = Slice(Input=clip, SliceType="Plane")
+
     slice.SliceType.Normal = slice_normal
     slice.SliceType.Origin = slice_origin
-    
+
     slice.UpdatePipeline()
-        
+
     offset = get_chord_spanwise(slice)
-    #define the cuts and make sure the is the one one you want
-    # make the 
+    # define the cuts and make sure the is the one one you want
+    # make the
     chord_calc = Calculator(Input=slice)
-    
+
     chord_calc.AttributeMode = 'Point Data'
-    chord_calc.Function = '(coords.jHat - '+str(offset[0])+')/'+str(offset[1]-offset[0])
+    chord_calc.Function = ('(coords.jHat - ' + str(offset[0]) + ')/' +
+                           str(offset[1]-offset[0]))
     chord_calc.ResultArrayName = 'chord'
 
     sum = MinMax(Input=slice)
@@ -487,19 +489,20 @@ def cp_profile_span(surface,slice_normal,slice_origin,**kwargs):
     pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
     fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
 
-    pforce = rotate_vector(pforce,alpha,beta)
-    fforce = rotate_vector(fforce,alpha,beta)
+    pforce = rotate_vector(pforce, alpha, beta)
+    fforce = rotate_vector(fforce, alpha, beta)
 
     if 'func' in kwargs:
         sorted_line = PlotOnSortedLines(Input=chord_calc)
         sorted_line.UpdatePipeline()
-        extract_client = servermanager.Fetch(sorted_line) 
-        for_each(extract_client,**kwargs)
-        
-    return {'pressure force':pforce,
-            'friction force':fforce}
-    
-def cf_profile(surface,slice_normal,slice_origin,**kwargs):
+        extract_client = servermanager.Fetch(sorted_line)
+        for_each(extract_client, **kwargs)
+
+    return {'pressure force': pforce,
+            'friction force': fforce}
+
+
+def cf_profile(surface, slice_normal, slice_origin, **kwargs):
 
     alpha = 0.0
     if 'alpha' in kwargs:
@@ -507,27 +510,28 @@ def cf_profile(surface,slice_normal,slice_origin,**kwargs):
     beta = 0.0
     if 'beta' in kwargs:
         beta = kwargs['beta']
-        
+
     point_data = CellDatatoPointData(Input=surface)
-    point_data.PassCellData = 1 
-    
-    slice = Slice(Input=point_data, SliceType="Plane" )
-    
+    point_data.PassCellData = 1
+
+    slice = Slice(Input=point_data, SliceType="Plane")
+
     slice.SliceType.Normal = slice_normal
     slice.SliceType.Origin = slice_origin
-    
+
     slice.UpdatePipeline()
-    
+
     offset = get_chord(slice)
-    
+
     chord_calc = Calculator(Input=slice)
-    
+
     chord_calc.AttributeMode = 'Point Data'
-    chord_calc.Function = '(coords.iHat - '+str(offset[0])+')/'+str(offset[1]-offset[0])
+    chord_calc.Function = ('(coords.iHat - ' + str(offset[0]) + ')/' +
+                           str(offset[1]-offset[0]))
     chord_calc.ResultArrayName = 'chord'
 
     cf_calc = Calculator(Input=chord_calc)
-    
+
     cf_calc.AttributeMode = 'Point Data'
     cf_calc.Function = 'mag(cf)'
     cf_calc.ResultArrayName = 'cfmag'
@@ -536,24 +540,26 @@ def cf_profile(surface,slice_normal,slice_origin,**kwargs):
     sum.Operation = "SUM"
     sum.UpdatePipeline()
 
-    sum_client = servermanager.Fetch(sum)    
+    sum_client = servermanager.Fetch(sum)
     pforce = sum_client.GetCellData().GetArray("pressureforce").GetTuple(0)
     fforce = sum_client.GetCellData().GetArray("frictionforce").GetTuple(0)
 
-    pforce = rotate_vector(pforce,alpha,beta)
-    fforce = rotate_vector(fforce,alpha,beta)
-    
+    pforce = rotate_vector(pforce, alpha, beta)
+    fforce = rotate_vector(fforce, alpha, beta)
+
     if 'func' in kwargs:
         sorted_line = PlotOnSortedLines(Input=cf_calc)
         sorted_line.UpdatePipeline()
-        extract_client = servermanager.Fetch(sorted_line) 
-        for_each(extract_client,**kwargs)
-        
-    return {'pressure force':pforce,
-            'friction force':fforce}
-    
+        extract_client = servermanager.Fetch(sorted_line)
+        for_each(extract_client, **kwargs)
+
+    return {'pressure force': pforce,
+            'friction force': fforce}
+
 import csv
-def get_csv_data(filename,header=False,remote=False,delim=' '):
+
+
+def get_csv_data(filename, header=False, remote=False, delim=' '):
     """ Get csv data
     """
     if remote:
@@ -566,24 +572,25 @@ def get_csv_data(filename,header=False,remote=False,delim=' '):
         theory.DetectNumericColumns = 1
         theory.FieldDelimiterCharacters = delim
         theory.UpdatePipeline()
-        
-        theory_client = servermanager.Fetch(theory) 
-        
+
+        theory_client = servermanager.Fetch(theory)
+
         table = Table(theory_client)
-            
+
         data = table.RowData
-        
+
     else:
         import pandas as pd
         if not header:
-            data = pd.read_csv(filename,sep=delim,header=None)
+            data = pd.read_csv(filename, sep=delim, header=None)
         else:
-            data = pd.read_csv(filename,sep=delim)
-          
+            data = pd.read_csv(filename, sep=delim)
+
     return data
-    
-def get_fw_csv_data(filename,widths,header=False,remote=False,**kwargs):
-    
+
+
+def get_fw_csv_data(filename, widths, header=False, remote=False, **kwargs):
+
     if remote:
         theory = CSVReader(FileName=[filename])
         theory.HaveHeaders = 0
@@ -592,24 +599,26 @@ def get_fw_csv_data(filename,widths,header=False,remote=False,**kwargs):
         theory.DetectNumericColumns = 1
         theory.FieldDelimiterCharacters = ' '
         theory.UpdatePipeline()
-        
-        theory_client = servermanager.Fetch(theory) 
-        
+
+        theory_client = servermanager.Fetch(theory)
+
         table = Table(theory_client)
-            
+
         data = table.RowData
-        
+
     else:
         import pandas as pd
         if not header:
-            data = pd.read_fwf(filename,sep=' ',header=None,widths=widths,**kwargs)
+            data = pd.read_fwf(filename, sep=' ', header=None,
+                               widths=widths, **kwargs)
         else:
-            data = pd.read_fwf(filename,sep=' ',width=widths,**kwargs)
-          
+            data = pd.read_fwf(filename, sep=' ', width=widths, **kwargs)
+
     return data
 
+
 def screenshot(wall):
-    #position camera
+    # position camera
     view = GetActiveView()
     if not view:
         # When using the ParaView UI, the View will be present, not otherwise.
@@ -617,47 +626,49 @@ def screenshot(wall):
     view.CameraViewUp = [0, 0, 1]
     view.CameraFocalPoint = [0, 0, 0]
     view.CameraViewAngle = 45
-    view.CameraPosition = [5,0,0]
-     
-    #draw the object
+    view.CameraPosition = [5, 0, 0]
+
+    # draw the object
     Show()
-     
-    #set the background color
-    view.Background = [1,1,1]  #white
-     
-    #set image size
-    view.ViewSize = [200, 300] #[width, height]
-     
+
+    # set the background color
+    view.Background = [1, 1, 1]  # white
+
+    # set image size
+    view.ViewSize = [200, 300]  # [width, height]
+
     dp = GetDisplayProperties()
- 
-    #set point color
-    dp.AmbientColor = [1, 0, 0] #red
-     
-    #set surface color
-    dp.DiffuseColor = [0, 1, 0] #blue
-     
-    #set point size
+
+    # set point color
+    dp.AmbientColor = [1, 0, 0]  # red
+
+    # set surface color
+    dp.DiffuseColor = [0, 1, 0]  # blue
+
+    # set point size
     dp.PointSize = 2
-     
-    #set representation
+
+    # set representation
     dp.Representation = "Surface"
-     
+
     Render()
-     
-    #save screenshot
+
+    # save screenshot
     WriteImage("test.png")
-    
-def sum_array(input,array_name):
-    sum = [0.0,0.0,0.0]
+
+
+def sum_array(input, array_name):
+    sum = [0.0, 0.0, 0.0]
     p = input.GetCellData().GetArray(array_name)
     numCells = input.GetNumberOfCells()
     for x in range(numCells):
         v = p.GetTuple(x)
-        for i in range(0,3):
-            sum[i] += v[i]                        
+        for i in range(0, 3):
+            sum[i] += v[i]
     return sum
 
-from fabric.api import env, run, cd, get, hide, settings, remote_tunnel, show, shell_env
+from fabric.api import (env, run, cd, get, hide, settings,
+                        remote_tunnel, show, shell_env)
 from fabric.tasks import execute
 
 
@@ -680,8 +691,7 @@ use_multiprocess = True
 
 def pvserver(remote_dir, paraview_cmd, paraview_port, paraview_remote_port):
 
-    with show('debug'), remote_tunnel(int(paraview_remote_port),
-                                      local_port=int(paraview_port)), cd(remote_dir):
+    with show('debug'), remote_tunnel(int(paraview_remote_port),local_port=int(paraview_port)), cd(remote_dir):
         # with cd(remote_dir):
         if not use_multiprocess:
             run('sleep 2;'+paraview_cmd+'</dev/null &>/dev/null&', pty=False)
@@ -961,9 +971,13 @@ def pvserver_process(**kwargs):
         remote_hostname = _remote_host[_remote_host.find('@')+1:]
 
         if 'vizstack' in kwargs:
-            paraview_args = '/opt/vizstack/bin/viz-paraview -r '+ str(kwargs['job_ntasks']) +' -c ' + remote_hostname + ' -p ' +  str(paraview_remote_port) 
+            paraview_args = ('/opt/vizstack/bin/viz-paraview -r ' +
+                             str(kwargs['job_ntasks']) + ' -c ' +
+                             remote_hostname + ' -p ' +
+                             str(paraview_remote_port))
         else:
-            paraview_args = ' -rc --client-host='+remote_hostname+' -sp='+str(paraview_remote_port)
+            paraview_args = (' -rc --client-host=' + remote_hostname +
+                             ' -sp=' + str(paraview_remote_port))
 
         print paraview_args
 
@@ -981,13 +995,17 @@ def pvserver_process(**kwargs):
     else:
         # Run Paraview
         if '-sp' in _paraview_cmd or '--client-host' in _paraview_cmd:
-            print 'pvserver_process: Please only provide pvserver executable path and name without arguments'
+            print ('pvserver_process: Please only provide pvserver'
+                   'executable path and name without arguments')
             print 'e.g. mpiexec -n 1 /path_to_pvserver/bin/pvserver'
             return False
         if 'vizstack' in kwargs:
-            _paraview_cmd = _paraview_cmd + ' -c localhost ' + ' -p ' +  str(paraview_remote_port)
+            _paraview_cmd = (_paraview_cmd + ' -c localhost ' + ' -p ' +
+                             str(paraview_remote_port))
         else:
-            _paraview_cmd = _paraview_cmd + ' -rc --client-host=localhost -sp='+str(paraview_remote_port)
+            _paraview_cmd = (_paraview_cmd +
+                             ' -rc --client-host=localhost -sp=' +
+                             str(paraview_remote_port))
 
         if _paraview_cmd is not None:
             env.use_ssh_config = True
@@ -1001,7 +1019,7 @@ def pvserver_disconnect():
         process_id.terminate()
 
 
-def get_case_parameters(case_name,**kwargs):  # remote_host,remote_dir,case_name):
+def get_case_parameters(case_name, **kwargs):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
     _remote_dir = data_dir
     if 'data_dir' in kwargs:
@@ -1017,7 +1035,7 @@ def get_case_parameters(case_name,**kwargs):  # remote_host,remote_dir,case_name
     return parameters
 
 
-def get_status_dict(case_name,**kwargs):#remote_host,remote_dir,case_name):
+def get_status_dict(case_name, **kwargs):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
     _remote_dir = data_dir
     if 'data_dir' in kwargs:
@@ -1025,7 +1043,7 @@ def get_status_dict(case_name,**kwargs):#remote_host,remote_dir,case_name):
     _remote_host = data_host
     if 'data_host' in kwargs:
         _remote_host = kwargs['data_host' ]
-        
+
     env.use_ssh_config = True
     env.host_string = _remote_host
     status_file_str=cat_status_file(_remote_dir,case_name)
@@ -1104,8 +1122,9 @@ import uuid
 import time
 from IPython.display import HTML, Javascript, display
 
+
 class ProgressBar(object):
-    
+
     def __init__(self):
         self.divid = str(uuid.uuid4())
         self.val = 0
@@ -1120,15 +1139,15 @@ class ProgressBar(object):
     def __iadd__(self,v):
         self.update(self.val+v)
         return self
-        
+
     def complete(self):
         self.update(100)
         display(Javascript("$('div#%s').hide()" % (self.divid)))
-        
+
     def update(self,i):
-        self.val = i    
+        self.val = i
         display(Javascript("$('div#%s').width('%i%%')" % (self.divid, i)))
-        
+
 
 remote_data = True
 data_dir = 'data'
