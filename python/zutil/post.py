@@ -274,6 +274,27 @@ def get_chord_spanwise(slice):
 
     return [min_pos, max_pos]
 
+def get_monitor_data(file, monitor_name, var_name):
+    """ Return the _report file data corresponding to a monitor point and variable name
+        """
+    monitor = CSVReader(FileName=[file])
+    monitor.HaveHeaders = 1
+    monitor.MergeConsecutiveDelimiters = 1
+    monitor.UseStringDelimiter = 0
+    monitor.DetectNumericColumns = 1
+    monitor.FieldDelimiterCharacters = ' '
+    monitor.UpdatePipeline()
+    monitor_client = servermanager.Fetch(monitor)
+    table = Table(monitor_client)
+    data = table.RowData
+    names = data.keys()
+    num_var = len(names)-2
+    if (str(monitor_name) + "_" + str(var_name) in names):
+        index = names.index(str(monitor_name) + "_" + str(var_name))
+        return (data[names[0]],data[names[index]])
+    else:
+        print 'POST.PY: MONITOR POINT: ' + str(monitor_name) + "_" + str(var_name) + ' NOT FOUND'
+
 
 def residual_plot(file):
     """ Plot the _report file
