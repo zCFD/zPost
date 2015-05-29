@@ -424,7 +424,6 @@ def cp_profile(surface, slice_normal, slice_origin, **kwargs):
     transform.UpdatePipeline()
 
     chord_calc = Calculator(Input=transform)
-
     chord_calc.AttributeMode = 'Point Data'
     chord_calc.Function = ('(coords.iHat - ' + str(offset[0]) + ')/' +
                            str(offset[1]-offset[0]))
@@ -593,20 +592,15 @@ def get_csv_data(filename, header=False, remote=False, delim=' '):
         theory.DetectNumericColumns = 1
         theory.FieldDelimiterCharacters = delim
         theory.UpdatePipeline()
-
         theory_client = servermanager.Fetch(theory)
-
         table = Table(theory_client)
-
         data = table.RowData
-
     else:
         import pandas as pd
         if not header:
             data = pd.read_csv(filename, sep=delim, header=None)
         else:
             data = pd.read_csv(filename, sep=delim)
-
     return data
 
 
