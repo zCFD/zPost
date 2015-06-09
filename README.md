@@ -41,7 +41,19 @@ The server submit node also requires that the ssh server is configured to act as
 These options need to be set in the /etc/ssh/sshd_config file on the server
 
 AllowTcpForwarding yes
+
 GatewayPorts yes 
+
+To use the cluster capabilities from python instead of calling
+
+> pvserver_connect(data_host=data_host,data_dir=data_dir,paraview_cmd=paraview_cmd)
+
+Use
+
+> pvserver_connect(data_host=data_host,data_dir=data_dir,paraview_cmd=paraview_cmd,job_queue=your_job_queue,
+job_ntasks=your_number_of_mpi_tasks,job_ntaskpernode=your_number_of_tasks_per_node,job_project=your_job_project)
+
+
 
 
 

@@ -24,7 +24,7 @@ import pylab as pl
 from zutil import rotate_vector
 import json
 from zutil import mag
-# import math
+import math
 import time
 
 
@@ -274,6 +274,27 @@ def get_chord_spanwise(slice):
 
     return [min_pos, max_pos]
 
+def get_monitor_data(file, monitor_name, var_name):
+    """ Return the _report file data corresponding to a monitor point and variable name
+        """
+    monitor = CSVReader(FileName=[file])
+    monitor.HaveHeaders = 1
+    monitor.MergeConsecutiveDelimiters = 1
+    monitor.UseStringDelimiter = 0
+    monitor.DetectNumericColumns = 1
+    monitor.FieldDelimiterCharacters = ' '
+    monitor.UpdatePipeline()
+    monitor_client = servermanager.Fetch(monitor)
+    table = Table(monitor_client)
+    data = table.RowData
+    names = data.keys()
+    num_var = len(names)-2
+    if (str(monitor_name) + "_" + str(var_name) in names):
+        index = names.index(str(monitor_name) + "_" + str(var_name))
+        return (data[names[0]],data[names[index]])
+    else:
+        print 'POST.PY: MONITOR POINT: ' + str(monitor_name) + "_" + str(var_name) + ' NOT FOUND'
+
 
 def residual_plot(file):
     """ Plot the _report file
@@ -403,7 +424,6 @@ def cp_profile(surface, slice_normal, slice_origin, **kwargs):
     transform.UpdatePipeline()
 
     chord_calc = Calculator(Input=transform)
-
     chord_calc.AttributeMode = 'Point Data'
     chord_calc.Function = ('(coords.iHat - ' + str(offset[0]) + ')/' +
                            str(offset[1]-offset[0]))
@@ -572,20 +592,15 @@ def get_csv_data(filename, header=False, remote=False, delim=' '):
         theory.DetectNumericColumns = 1
         theory.FieldDelimiterCharacters = delim
         theory.UpdatePipeline()
-
         theory_client = servermanager.Fetch(theory)
-
         table = Table(theory_client)
-
         data = table.RowData
-
     else:
         import pandas as pd
         if not header:
             data = pd.read_csv(filename, sep=delim, header=None)
         else:
             data = pd.read_csv(filename, sep=delim)
-
     return data
 
 
