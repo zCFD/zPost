@@ -4,7 +4,7 @@
 		{
 			"cmd":
 			[
-				"zpost-py27/bin/python",
+				"python",
 				"-u",
 				"${file}"
 			],

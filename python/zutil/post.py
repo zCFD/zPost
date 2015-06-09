@@ -1129,14 +1129,14 @@ class ProgressBar(object):
         self.divid = str(uuid.uuid4())
         self.val = 0
         pb = HTML(
-        """
+            """
         <div style="border: 1px solid black; width:500px">
           <div id="%s" style="background-color:grey; width:0%%">&nbsp;</div>
-        </div> 
+        </div>
         """ % self.divid)
         display(pb)
 
-    def __iadd__(self,v):
+    def __iadd__(self, v):
         self.update(self.val+v)
         return self
 
@@ -1144,7 +1144,7 @@ class ProgressBar(object):
         self.update(100)
         display(Javascript("$('div#%s').hide()" % (self.divid)))
 
-    def update(self,i):
+    def update(self, i):
         self.val = i
         display(Javascript("$('div#%s').width('%i%%')" % (self.divid, i)))
 
@@ -1153,37 +1153,63 @@ remote_data = True
 data_dir = 'data'
 data_host = 'user@server'
 remote_server_auto = True
-paraview_cmd = 'mpiexec ~/apps/Paraview/bin/pvserver -rc --client-host=localhost -sp=11113'
+paraview_cmd = 'mpiexec pvserver'
 paraview_home = '/usr/local/bin/'
+job_queue = 'default'
+job_tasks = 1
+job_ntaskpernode = 1
+job_project = 'default'
 
 
 def data_location_form_html(**kwargs):
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
- 
+    global remote_data, data_dir, data_host, remote_server_auto, paraview_cmd
+    global job_queue, job_tasks, job_ntaskpernode, job_project
+
     if 'data_dir' in kwargs:
         data_dir = kwargs['data_dir']
     if 'paraview_cmd' in kwargs:
-        paraview_cmd = kwargs['paraview_cmd' ]
+        paraview_cmd = kwargs['paraview_cmd']
     if 'data_host' in kwargs:
-        data_host = kwargs['data_host' ]
-       
-    remote_data_checked = ''     
+        data_host = kwargs['data_host']
+
+    remote_data_checked = ''
     if remote_data:
         remote_data_checked = 'checked="checked"'
-    remote_server_auto_checked = ''     
+    remote_server_auto_checked = ''
     if remote_server_auto:
         remote_server_auto_checked = 'checked="checked"'
 
+    remote_cluster_checked = ''
+    job_queue = 'default'
+    job_tasks = 1
+    job_ntaskpernode = 1
+    job_project = 'default'
+
     input_form = """
-    <div style="background-color:gainsboro; border:solid black; width:640px; padding:20px;">
-    <label style="width:22%;display:inline-block">Remote Data</label><input type="checkbox" id="remote_data" value="remote" {remote_data_checked}><br>
-    <label style="width:22%;display:inline-block">Data Directory</label> <input style="width:75%;" type="text" id="data_dir" value="{data_dir}"><br>
-    <label style="width:22%;display:inline-block">Data Host</label> <input style="width:75%;" type="text" id="data_host" value="{data_host}"><br>
-    <label style="width:22%;display:inline-block">Remote Server Auto</label> <input type="checkbox" id="remote_server_auto" value="remote_auto" {remote_server_auto_checked}><br>
-    <label style="width:22%;display:inline-block">Paraview Cmd </label><input style="width:75%;" type="text" id="paraview_cmd" value="{paraview_cmd}"><br>
-    <button onclick="apply()">Apply</button>
-    </div>
-    """
+<div style="background-color:gainsboro; border:solid black; width:640px; padding:20px;">
+<label style="width:22%;display:inline-block">Remote Data</label>
+<input type="checkbox" id="remote_data" value="remote" {remote_data_checked}><br>
+<label style="width:22%;display:inline-block">Data Directory</label>
+<input style="width:75%;" type="text" id="data_dir" value="{data_dir}"><br>
+<label style="width:22%;display:inline-block">Data Host</label>
+<input style="width:75%;" type="text" id="data_host" value="{data_host}"><br>
+<label style="width:22%;display:inline-block">Remote Server Auto</label>
+<input type="checkbox" id="remote_server_auto" value="remote_auto" {remote_server_auto_checked}><br>
+<label style="width:22%;display:inline-block">Paraview Cmd </label>
+<input style="width:75%;" type="text" id="paraview_cmd" value="{paraview_cmd}"><br>
+<label style="width:22%;display:inline-block">Remote Cluster</label>
+<input type="checkbox" id="remote_cluster" value="remote_cluster" {remote_cluster_checked}><br>
+<label style="width:22%;display:inline-block">Job Queue </label>
+<input style="width:75%;" type="text" id="job_queue" value="{job_queue}"><br>
+<label style="width:22%;display:inline-block">Job Tasks </label>
+<input style="width:75%;" type="text" id="job_tasks" value="{job_tasks}"><br>
+<label style="width:22%;display:inline-block">Job Tasks per Node </label>
+<input style="width:75%;" type="text" id="job_ntaskpernode" value="{job_ntaskpernode}"><br>
+<label style="width:22%;display:inline-block">Job Project </label>
+<input style="width:75%;" type="text" id="job_project" value="{job_project}"><br>
+<button onclick="apply()">Apply</button>
+</div>
+"""
 
     javascript = """
     <script type="text/Javascript">
@@ -1193,44 +1219,62 @@ def data_location_form_html(**kwargs):
             var data_host = $('input#data_host').val();
             var remote_server_auto = ($('input#remote_server_auto').is(':checked') ? 'True' : 'False');
             var paraview_cmd = $('input#paraview_cmd').val();
+            var remote_cluster = ($('input#remote_cluster').is(':checked') ? 'True' : 'False');
+
 
             var kernel = IPython.notebook.kernel;
 
+            // Send data dir to ipython
             var  command = "from zutil import post; post.data_dir = '" + data_dir + "'";
             console.log("Executing Command: " + command);
             kernel.execute(command);
-            
+
+            // Send data host to ipython
             var  command = "from zutil import post; post.data_host = '" + data_host + "'";
             console.log("Executing Command: " + command);
             kernel.execute(command);
-            
+
+            // Send remote server flag to ipython
             var  command = "from zutil import post; post.remote_server_auto = " + remote_server_auto;
             console.log("Executing Command: " + command);
             kernel.execute(command);
 
+            // Send paraview command to ipython
             var  command = "from zutil import post; post.paraview_cmd = '" + paraview_cmd + "'";
             console.log("Executing Command: " + command);
             kernel.execute(command);
-            
+
+            // Send remote data flag to ipython
             var  command = "from zutil import post; post.remote_data = " + remote_data ;
             console.log("Executing Command: " + command);
             kernel.execute(command);
-            
+
+            // Set paraview command to none if not using remote server
             var command = "from zutil import post; if not post.remote_server_auto: post.paraview_cmd=None"
             console.log("Executing Command: " + command);
             kernel.execute(command);
 
+            // Set data to local host for local data
             var command = "from zutil import post; if not post.post.remote_data: post.data_host='localhost'; post.paraview_cmd=None"
             console.log("Executing Command: " + command);
             kernel.execute(command);
-           
+
+            if(remote_cluster == 'True'){
+                // Set cluster job info
+                //var command = "from zutil import post; post.jo";
+            }
+
         }
     </script>
     """
-    
+
     return HTML(input_form.format(data_dir=data_dir,
                                   data_host=data_host,
                                   paraview_cmd=paraview_cmd,
                                   remote_data_checked=remote_data_checked,
-                                  remote_server_auto_checked=remote_server_auto_checked) + javascript)
-        
+                                  remote_server_auto_checked=remote_server_auto_checked,
+                                  remote_cluster_checked=remote_cluster_checked,
+                                  job_queue=job_queue,
+                                  job_tasks=job_tasks,
+                                  job_ntaskpernode=job_ntaskpernode,
+                                  job_project=job_project) + javascript)
