@@ -27,7 +27,7 @@ GOTO EOF
 if exist ".\zpost-py27\" rd /q /s ".\zpost-py27\"
 
 echo "Creating virtual environment"
-virtualenv zpost-py27
+virtualenv --system-site-packages zpost-py27
 
 echo "Activating virtual environment"
 call zpost-py27\scripts\activate
