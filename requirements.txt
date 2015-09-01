@@ -1,4 +1,5 @@
 ipython
+jupyter
 numpy
 scipy
 # On Macs may need to comment out /usr/X11/include/freetype2 before compiling matplotlib
