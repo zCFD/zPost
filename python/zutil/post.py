@@ -1035,7 +1035,7 @@ def pvserver_disconnect():
 
 
 def get_case_parameters(case_name, **kwargs):
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
+    global remote_data, data_dir, data_host, remote_server_auto, paraview_cmd
     _remote_dir = data_dir
     if 'data_dir' in kwargs:
         _remote_dir = kwargs['data_dir']
@@ -1045,15 +1045,19 @@ def get_case_parameters(case_name, **kwargs):
 
     env.use_ssh_config = True
     env.host_string = _remote_host
-    case_file_str=cat_case_file(_remote_dir,case_name)
+    case_file_str = cat_case_file(_remote_dir, case_name)
     exec case_file_str
     return parameters
 
 
 def get_status_dict(case_name, **kwargs):
-    global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
+    global remote_data, data_dir, data_host, remote_server_auto, paraview_cmd
 
-    if remote_data:
+    _remote_data = remote_data
+    if 'remote_data' in kwargs:
+        _remote_data = kwargs['remote_data']
+
+    if _remote_data:
         _remote_dir = data_dir
         if 'data_dir' in kwargs:
             _remote_dir = kwargs['data_dir']
@@ -1084,15 +1088,16 @@ def get_status_dict(case_name, **kwargs):
                 return None
 
 
-def get_num_procs(case_name,**kwargs):#remote_host,remote_dir,case_name):
-    status = get_status_dict(case_name,**kwargs)
+def get_num_procs(case_name, **kwargs):
+    # remote_host,remote_dir,case_name):
+    status = get_status_dict(case_name, **kwargs)
     if 'num processor' in status:
         return status['num processor']
     else:
         return None
 
 
-def get_case_root(case_name,num_procs):
+def get_case_root(case_name, num_procs):
     return case_name+'_P'+num_procs+'_OUTPUT/'+case_name
 
 
@@ -1103,32 +1108,32 @@ def get_case_report(case):
 def print_html_parameters(parameters):
 
     reference = parameters['reference']
-    material  = parameters['material']
+    # material = parameters['material']
     conditions = parameters[reference]
-    
+
     mach = 0.0
     speed = 0.0
-    
+
     if 'Mach' in conditions['V']:
         mach = conditions['V']['Mach']
         speed = 0.0
     else:
         speed = mag(conditions['V']['vector'])
         mach = 0.0
-    
+
     if 'Reynolds No' in conditions:
         reynolds = conditions['Reynolds No']
     else:
         reynolds = 'undefined'
-    
+
     if 'Reference Length' in conditions:
         reflength = conditions['Reference Length']
     else:
         reflength = 'undefined'
-    
+
     import string
-    
-    html_template='''<table>
+
+    html_template = '''<table>
 <tr><td>pressure</td><td>$pressure</td></tr>
 <tr><td>temperature</td><td>$temperature</td></tr>
 <tr><td>Reynolds No</td><td>$reynolds</td></tr>
