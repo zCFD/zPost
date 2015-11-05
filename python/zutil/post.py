@@ -1052,23 +1052,36 @@ def get_case_parameters(case_name, **kwargs):
 
 def get_status_dict(case_name, **kwargs):
     global remote_data,data_dir,data_host,remote_server_auto,paraview_cmd
-    _remote_dir = data_dir
-    if 'data_dir' in kwargs:
-        _remote_dir = kwargs['data_dir']
-    _remote_host = data_host
-    if 'data_host' in kwargs:
-        _remote_host = kwargs['data_host' ]
 
-    env.use_ssh_config = True
-    env.host_string = _remote_host
-    status_file_str=cat_status_file(_remote_dir,case_name)
+    if remote_data:
+        _remote_dir = data_dir
+        if 'data_dir' in kwargs:
+            _remote_dir = kwargs['data_dir']
+        _remote_host = data_host
+        if 'data_host' in kwargs:
+            _remote_host = kwargs['data_host']
 
-    if status_file_str != None:
-        #print status_file_str
-        return json.loads(status_file_str)
+        env.use_ssh_config = True
+        env.host_string = _remote_host
+        status_file_str = cat_status_file(_remote_dir, case_name)
+
+        if status_file_str is not None:
+            # print status_file_str
+            return json.loads(status_file_str)
+        else:
+            print 'WARNING: '+case_name+'_status.txt file not found'
+            return None
     else:
-        print 'WARNING: '+case_name+'_status.txt file not found'
-        return None
+        # Get contents of local file
+        with open(case_name+'_status.txt') as f:
+            status_file_str = f.read()
+
+            if status_file_str is not None:
+                # print status_file_str
+                return json.loads(status_file_str)
+            else:
+                print 'WARNING: '+case_name+'_status.txt file not found'
+                return None
 
 
 def get_num_procs(case_name,**kwargs):#remote_host,remote_dir,case_name):
