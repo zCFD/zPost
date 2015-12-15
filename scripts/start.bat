@@ -3,15 +3,13 @@ echo "zPost Starting IPython notebook"
 
 call ..\zpost-py27\Scripts\activate
 
-REM PARAVIEW_HOME="/Applications/paraview.app"
+call ..\pvconnect-py27\pv-location.bat
 
-REM set DYLD_FRAMEWORK_PATH=%PARAVIEW_HOME%\Contents\Frameworks
-REM set DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources:%PARAVIEW_HOME%\Contents\Libraries
-REM set PYTHONPATH=%PARAVIEW_HOME%\Contents\Python:%PARAVIEW_HOME%\Contents\Libraries:`pwd`/../python
+echo "%PARAVIEW_BIN_LOCATION%"
+set PATH=%PARAVIEW_BIN_LOCATION%;%PATH%
+set PYTHONPATH=..;%PARAVIEW_SITE_LIB%\site-packages;%PARAVIEW_SITE_LIB%\site-packages\vtk;%PYTHONPATH%
 
-set PARAVIEW_HOME=C:\PROGRA~2\ParaView 4.3.1
-set PYTHONPATH=%PARAVIEW_HOME%\lib\paraview-4.3\site-packages\;%PARAVIEW_HOME%\lib\paraview-4.3\site-packages\vtk;%CD%\..\python
-set PATH=%CD%\..\zpost-py27\Scripts;%PATH%;%PARAVIEW_HOME%\bin\;%PARAVIEW_HOME%\lib\site-packages\vtk\
+set PATH=%CD%\..\zpost-py27\Scripts;%PATH%
 
 echo %PYTHONPATH% 
 echo %PATH%
