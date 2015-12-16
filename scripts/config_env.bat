@@ -44,8 +44,8 @@ echo Paraview Sitelib not found!
 goto EOF
 
 :sitelibok
-echo SET PARAVIEW_SITE_LIB=%*\..\lib\%sitelib%> pv-location.bat
-echo SET PARAVIEW_BIN=%*>> pv-location.bat
+echo SET PARAVIEW_SITE_LIB=%*\..\lib\%sitelib%> .\scripts\pv-location.bat
+echo SET PARAVIEW_BIN=%*>> .\scripts\pv-location.bat
 
 popd
 
