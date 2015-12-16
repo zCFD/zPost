@@ -5,6 +5,7 @@ Example IPython notebooks for post processing zCFD results
 
 Installation instructions:
 
+### Linux
 Ensure you have Python 2.7 (including virtualenv package) and Paraview installed. 
 Note ParaView needs to use the same version of python
 
@@ -19,6 +20,22 @@ To run the ipython notebook server
 > ./start_notebook
 
 If you want to run a custom version of Paraview please set the PARAVIEW_HOME variable in your shell before starting the notebook server
+
+### Windows
+To use zPost on a Windows machine we recommend installing the Anaconda distribution of Python 2.7, this includes the majority of the libraries used by zPost and simplfies the installation process.
+Once Anaconda is installed also install fabric by running
+> pip install fabric
+
+You also need to setup keyless ssh access and create a config file in ~/.ssh/config pointing to your openSSH key.
+Example:
+```
+Host login1
+    Hostname login1
+    User joe.blogs
+    IdentityFile ~/.ssh/id_rsa
+```
+
+
 
 
 Paraview Client
