@@ -26,6 +26,10 @@ To use zPost on a Windows machine we recommend installing the Anaconda distribut
 Once Anaconda is installed also install fabric by running
 > pip install fabric
 
+Then configure zPost by running config_env.bat in the zPost\scripts, you will need to pass it the location of your local Paraview installation. i.e.:
+
+> create_env.bat c:\Program Files\Paraview 4.4.0\bin
+
 You also need to setup keyless ssh access and create a config file in ~/.ssh/config pointing to your openSSH key.
 Example:
 ```
@@ -35,8 +39,7 @@ Host login1
     IdentityFile ~/.ssh/id_rsa
 ```
 
-
-
+You can then start iPython notbook using by running start.bat in zPost\scripts  
 
 Paraview Client
 ---------------
